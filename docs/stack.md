@@ -23,3 +23,5 @@ What is in use in this repo, and why each piece is here. This is the record the 
 | `@types/react`, `@types/react-dom`, `@types/d3-geo`, `@types/topojson-client` | Types for the libraries above | [ADR 0001](./adr/0001-frontend-stack-react-vite-typescript-d3-geo.md) |
 | `vitest` | Unit tests | [ADR 0001](./adr/0001-frontend-stack-react-vite-typescript-d3-geo.md) |
 | `@playwright/test` | End-to-end tests | [ADR 0001](./adr/0001-frontend-stack-react-vite-typescript-d3-geo.md) |
+| Design tokens and components: plain CSS in `src/design/` | Night side look without a library | [ADR 0002](./adr/0002-design-tokens-plain-css-self-hosted-fonts.md) |
+| Fonts Inter and JetBrains Mono: self-hosted font files (OFL) | No third-party font request | [ADR 0002](./adr/0002-design-tokens-plain-css-self-hosted-fonts.md) |

@@ -24,6 +24,7 @@ When **not** to write one:
 | # | Title | Status |
 |---|---|---|
 | [0001](./0001-frontend-stack-react-vite-typescript-d3-geo.md) | Frontend stack: React, Vite, TypeScript, d3-geo | Accepted |
+| [0002](./0002-design-tokens-plain-css-self-hosted-fonts.md) | Design tokens: plain CSS, self-hosted OFL fonts | Accepted |
 
 ---
 
