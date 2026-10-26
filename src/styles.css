@@ -89,7 +89,9 @@ aside h2 {
   cursor: pointer;
 }
 
-.country-selected {
+/* The production build splits the shared design CSS into a chunk that loads after this file,
+   so source order cannot be relied on here; the extra class wins by specificity. */
+.land.country-selected {
   stroke: var(--color-text);
   stroke-width: 1.5;
 }
