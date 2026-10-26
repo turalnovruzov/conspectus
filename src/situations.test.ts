@@ -72,6 +72,8 @@ describe('countryFills', () => {
     const fills = countryFills(list, null)
     expect(fills.size).toBe(6)
     expect(fills.get('076')?.color).toBe('#38bdf8')
+    expect(fills.get('792')).toEqual({ color: '#fdba74', role: 'supporting' })
+    expect(fills.get('398')?.color).toBe('#f97316')
   })
 
   it('with a selection colours only that situation', () => {

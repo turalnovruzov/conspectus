@@ -167,6 +167,7 @@ h2 {
   color: var(--text);
   font: inherit;
   font-size: 12px;
+  white-space: nowrap;
   cursor: pointer;
 }
 
@@ -193,6 +194,7 @@ h2 {
   }
 
   main {
+    flex-grow: 0;
     padding: 16px;
   }
 

@@ -20,8 +20,8 @@ test('loads the page with the sample situations coloured', async ({ page }) => {
   await expect(page.locator(country('076'))).toHaveAttribute('data-state', 'party')
   const turkey = page.locator(country('792'))
   await expect(turkey).toHaveAttribute('data-state', 'supporting')
-  await expect(turkey).toHaveAttribute('fill', '#f97316')
-  await expect(turkey).toHaveAttribute('fill-opacity', '0.5')
+  await expect(turkey).toHaveAttribute('fill', '#fdba74')
+  await expect(turkey).not.toHaveAttribute('fill-opacity', /.*/)
   await expect(page.locator(country('276'))).toHaveAttribute('data-state', 'none')
 })
 

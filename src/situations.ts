@@ -17,6 +17,16 @@ export interface Fill {
 
 export const PALETTE = ['#f97316', '#38bdf8', '#e879f9', '#a3e635', '#facc15', '#f43f5e']
 
+// Solid paler tint per palette colour for supporting countries, as drawn on the design board.
+export const TINTS: Record<string, string> = {
+  '#f97316': '#fdba74',
+  '#38bdf8': '#7dd3fc',
+  '#e879f9': '#f0abfc',
+  '#a3e635': '#bef264',
+  '#facc15': '#fde047',
+  '#f43f5e': '#fda4af',
+}
+
 function nonEmptyString(value: unknown, field: string): string {
   if (typeof value !== 'string' || value === '') {
     throw new Error(`Invalid situation data: "${field}" must be a non-empty string`)
@@ -57,7 +67,9 @@ export function countryFills(list: Situation[], selectedId: string | null): Map<
   for (const s of list) {
     if (selectedId !== null && s.id !== selectedId) continue
     for (const inv of s.involved) {
-      if (!fills.has(inv.country)) fills.set(inv.country, { color: s.color, role: inv.role })
+      if (fills.has(inv.country)) continue
+      const color = inv.role === 'supporting' ? (TINTS[s.color] ?? s.color) : s.color
+      fills.set(inv.country, { color, role: inv.role })
     }
   }
   return fills

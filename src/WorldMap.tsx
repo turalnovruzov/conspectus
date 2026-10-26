@@ -35,7 +35,6 @@ export default function WorldMap({ fills, selectedCountry, onPickCountry }: Prop
             data-state={fill?.role ?? 'none'}
             data-selected={selected ? 'true' : undefined}
             fill={fill?.color ?? LAND}
-            fillOpacity={fill && fill.role !== 'party' ? 0.5 : undefined}
             stroke={selected ? '#e6eaf2' : BORDER}
             strokeWidth={selected ? 1.5 : 0.6}
             style={{ cursor: 'pointer' }}
