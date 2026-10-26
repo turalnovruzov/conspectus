@@ -122,7 +122,7 @@ Report **in-session, in plain language**: when a piece is merged, tell him what 
 
 ### What this project is
 
-A side project: a web page with an interactive world map and graph, kept current by AI agents tracking the news, giving a high-level view of world politics (*"I want more of a high-level global view of what's happening around the world politics wise"*, Tural, 2026-10-25). Built slowly, agile (*"we would work on this in an agile manner and slowly build it up"*). The full vision, in his words, is in `README.md`.
+A side project: a web page with an interactive world map and graph, kept current by agents following the news, giving a high-level view of what is happening in the world. Built slowly, in small steps. The idea is in `README.md`.
 
 ### Test command
 
@@ -146,4 +146,4 @@ Not decided yet; `docs/stack.md` records it once it is.
 
 ### Project-only rules
 
-- How the agents read the news is worked out by experiment, not decided up front (*"Regarding AI doing reading, we'll see ... experiment"*, Tural, 2026-10-25).
+- How the agents read the news is worked out by experiment, not decided up front (Tural, 2026-10-25).
