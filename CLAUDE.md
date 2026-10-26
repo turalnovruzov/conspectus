@@ -122,11 +122,13 @@ Report **in-session, in plain language**: when a piece is merged, tell him what 
 
 ### What this project is
 
-A side project: a web page with an interactive world map and graph, kept current by agents following the news, giving a high-level view of what is happening in the world. Built slowly, in small steps. The idea is in `README.md`.
+A side project: a web page with an interactive world map (maybe with a graph view), kept current by agents following the news, giving a high-level view of what is happening in the world. Built slowly, in small steps. The idea is in `README.md`.
 
 ### Test command
 
 `none yet`
+
+No CI yet: CI is added with the first test command, before the first merge that needs it.
 
 ### How to run and try it
 
@@ -135,6 +137,8 @@ A web app, run from its dev script once one exists.
 Looked at in a browser, driven by a browser tool.
 
 Tried on mock data the auditor makes until a news source is chosen.
+
+*General, not exact: the agent works out commands, inputs and data from the project as it is now and the work at hand. The limits here are hard.*
 
 ### Deploy
 
@@ -146,4 +150,4 @@ Not decided yet; `docs/stack.md` records it once it is.
 
 ### Project-only rules
 
-- How the agents read the news is worked out by experiment, not decided up front (Tural, 2026-10-25).
+- How the agents read the news is open; Tural expects to work it out by experiment (2026-10-25).
