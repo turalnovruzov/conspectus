@@ -126,9 +126,9 @@ A side project: a web page with an interactive world map (maybe with a graph vie
 
 ### Test command
 
-`none yet`
+`npm test` (typecheck, Vitest unit, Playwright end-to-end; first run `npx playwright install chromium`)
 
-No CI yet: CI is added with the first test command, before the first merge that needs it.
+CI: `.github/workflows/ci.yml` runs it on every PR and on `main`.
 
 ### How to run and try it
 
@@ -148,7 +148,7 @@ No deploy stage.
 
 ### Stack
 
-Not decided yet; `docs/stack.md` records it once it is.
+React + Vite + TypeScript, `d3-geo` for the map, Vitest and Playwright; frontend only. Recorded in `docs/stack.md` and ADR 0001.
 
 ### Project-only rules
 
