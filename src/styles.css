@@ -1,12 +1,3 @@
-:root {
-  --bg: #0b1020;
-  --text: #e6eaf2;
-  --muted: #9aa6bf;
-  --line: #1c2540;
-  --card-selected: #141c33;
-  --amber: #fbbf24;
-}
-
 * {
   box-sizing: border-box;
 }
@@ -14,193 +5,191 @@
 html,
 body,
 #root {
-  height: 100%;
+  min-height: 100%;
 }
 
 body {
   margin: 0;
-  background: var(--bg);
-  color: var(--text);
-  font-family: Inter, system-ui, sans-serif;
+  background: var(--color-ground);
+  color: var(--color-text);
+  font-family: var(--font-sans);
 }
 
 .page {
-  min-height: 100%;
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
+  gap: var(--space-24);
+  padding: var(--space-40) var(--space-48);
+}
+
+header,
+.body {
+  display: grid;
+  grid-template-columns: repeat(var(--grid-columns), minmax(0, 1fr));
+  column-gap: var(--grid-gap);
 }
 
 header {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  align-items: center;
-  justify-content: space-between;
-  padding: 20px 32px;
-  border-bottom: 1px solid var(--line);
-}
-
-.brand {
-  display: flex;
-  align-items: baseline;
-  flex-wrap: wrap;
-  gap: 16px;
-}
-
-h1 {
-  margin: 0;
-  font-family: 'Space Grotesk', system-ui, sans-serif;
-  font-size: 24px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-}
-
-.tagline {
-  font-size: 14px;
-  color: var(--muted);
-}
-
-.badge {
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--amber);
-  border: 1px solid var(--amber);
-  border-radius: 999px;
-  padding: 4px 12px;
+  align-items: end;
+  padding-bottom: var(--space-16);
+  border-bottom: var(--border-hairline);
 }
 
 .body {
-  flex-grow: 1;
-  display: flex;
+  flex: 1;
+}
+
+h1 {
+  grid-column: span 6;
+  margin: 0;
+  font-size: var(--text-display);
+  font-weight: var(--weight-heavy);
+  letter-spacing: var(--tracking-display);
+  line-height: var(--leading-display);
+}
+
+.header-tagline {
+  grid-column: span 3;
+}
+
+.header-badge {
+  grid-column: span 3;
+  text-align: right;
 }
 
 main {
-  flex-grow: 1;
-  min-width: 0;
+  grid-column: span 8;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-}
-
-.map {
-  display: block;
-  width: 100%;
-  max-width: 900px;
-  height: auto;
+  flex-direction: column;
+  gap: var(--space-14);
+  min-width: 0;
 }
 
 aside {
-  width: 320px;
-  flex-shrink: 0;
-  border-left: 1px solid var(--line);
-  padding: 24px;
+  grid-column: span 4;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--space-24);
+  min-width: 0;
 }
 
-h2 {
-  margin: 0 0 4px;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--muted);
+aside h2 {
+  margin: 0;
+  font-weight: var(--weight-regular);
 }
 
+.map {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.map path {
+  cursor: pointer;
+}
+
+.country-selected {
+  stroke: var(--color-text);
+  stroke-width: 1.5;
+}
+
+.legend {
+  display: flex;
+  gap: var(--space-28);
+  padding-top: var(--space-10);
+  border-top: var(--border-hairline);
+  font-size: var(--text-small);
+  color: var(--color-text-2);
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-8);
+}
+
+/* Loads after components.css at equal specificity: the border and padding shorthands
+   would wipe the panel's top rule, so only the other sides are reset. */
 .card {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  text-align: left;
-  border-radius: 10px;
-  padding: 14px 16px;
+  width: 100%;
   background: transparent;
-  border: 1px solid var(--line);
+  border-left: 0;
+  border-right: 0;
+  border-bottom: 0;
+  padding-left: 0;
+  padding-right: 0;
+  padding-bottom: 0;
+  text-align: left;
   color: inherit;
   font: inherit;
   cursor: pointer;
 }
 
-.card-title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 15px;
-  font-weight: 600;
+.card:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 2px;
 }
 
-.dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  flex-shrink: 0;
+.card-title {
+  font-size: var(--text-title);
+  font-weight: var(--weight-heavy);
+  letter-spacing: var(--tracking-title);
+  line-height: var(--leading-title);
 }
 
 .card-line {
-  font-size: 13px;
-  color: #c3cbdc;
-}
-
-.card-role {
-  font-size: 13px;
-  color: var(--muted);
+  font-size: var(--text-small);
+  line-height: var(--leading-small);
+  color: var(--color-text-2);
 }
 
 .filter {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  font-size: 13px;
-  color: #c3cbdc;
-}
-
-.show-all {
-  background: transparent;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  padding: 4px 12px;
-  color: var(--text);
-  font: inherit;
-  font-size: 12px;
-  white-space: nowrap;
-  cursor: pointer;
+  gap: var(--space-12);
+  font-size: var(--text-small);
+  color: var(--color-text-2);
 }
 
 .empty {
   margin: 0;
-  font-size: 13px;
-  color: var(--muted);
+  font-size: var(--text-small);
+  color: var(--color-label);
 }
 
 .hint {
   margin: auto 0 0;
-  font-size: 13px;
-  line-height: 1.5;
-  color: var(--muted);
+  font-size: var(--text-small);
+  color: var(--color-label);
 }
 
 @media (max-width: 768px) {
-  header {
-    padding: 16px 20px;
+  .page {
+    padding: var(--space-20);
   }
 
+  header,
   .body {
-    flex-direction: column;
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: var(--space-24);
   }
 
-  main {
-    flex-grow: 0;
-    padding: 16px;
-  }
-
+  h1,
+  .header-tagline,
+  .header-badge,
+  main,
   aside {
-    width: auto;
-    border-left: none;
-    border-top: 1px solid var(--line);
+    grid-column: 1 / -1;
+  }
+
+  .header-badge {
+    text-align: left;
+  }
+
+  h1 {
+    font-size: var(--text-title);
+    letter-spacing: var(--tracking-title);
   }
 }
