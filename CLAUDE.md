@@ -138,6 +138,8 @@ Looked at in a browser, driven by a browser tool.
 
 Tried on mock data the auditor makes until a news source is chosen.
 
+No hard limits stated yet.
+
 *General, not exact: the agent works out commands, inputs and data from the project as it is now and the work at hand. The limits here are hard.*
 
 ### Deploy
@@ -150,4 +152,4 @@ Not decided yet; `docs/stack.md` records it once it is.
 
 ### Project-only rules
 
-- How the agents read the news is open; Tural expects to work it out by experiment (2026-10-25).
+- How the agents read the news is open, expected to be worked out by experiment.
