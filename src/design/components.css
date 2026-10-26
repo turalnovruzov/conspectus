@@ -77,7 +77,7 @@
 
 .tag {
   display: inline-block;
-  padding: 4px var(--space-8);
+  padding: var(--space-4) var(--space-8);
   font-family: var(--font-mono);
   font-size: var(--text-label);
   color: var(--color-text-2);
@@ -174,7 +174,7 @@
   r: var(--graph-node-r);
   fill: var(--involvement-stepped-out-fill);
   stroke: var(--involvement-stepped-out-stroke);
-  stroke-dasharray: 3 3;
+  stroke-dasharray: var(--graph-node-stepped-out-dash);
 }
 
 .graph-node-idle {

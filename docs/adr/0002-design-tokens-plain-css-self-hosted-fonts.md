@@ -5,7 +5,7 @@
 
 ## Context
 
-Issue #3 asks for a design system. Tural chose the "E · Night side" board: Swiss grid and type, a dark ground, one warm accent. He asked for no framework or library, fonts kept in the repo, and no request to a third party from the page.
+Issue #3 asks for a design system. Tural chose the "E · Night side" board: Swiss grid and type, a dark ground, one warm accent. No framework or library, fonts kept in the repo, and no request to a third party from the page were settled in refinement as defaults he did not object to; his own choice was style E (Night side).
 
 ## Decision
 

@@ -23,6 +23,7 @@
   --involvement-glow-opacity: 0.45;
   --graph-edge: var(--color-edge);
   --graph-edge-stepped-out-dash: 3 4;
+  --graph-node-stepped-out-dash: 3 3;
   --graph-node-r: 7px;
   --graph-node-focus-r: 12px;
 
@@ -44,6 +45,7 @@
   --leading-body: 1.5;
   --leading-small: 1.6;
 
+  --space-4: 4px;
   --space-6: 6px;
   --space-8: 8px;
   --space-10: 10px;
