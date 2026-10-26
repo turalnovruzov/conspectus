@@ -25,7 +25,7 @@ export default function App() {
         <h1>Conspectus</h1>
         <span className="label-mono header-tagline">THE WORLD, FROM ABOVE</span>
         <span className="header-badge">
-          <span className="tag">SAMPLE DATA — MADE UP</span>
+          <span className="tag">SAMPLE DATA · MADE UP</span>
         </span>
       </header>
       <div className="body">
@@ -37,10 +37,10 @@ export default function App() {
           />
           <div className="legend" data-legend>
             <span className="legend-item">
-              <span className="swatch-pulled-in" aria-hidden="true" /> Party
+              <span className="swatch-pulled-in" aria-hidden="true" /> Pulled in
             </span>
             <span className="legend-item">
-              <span className="swatch-joined" aria-hidden="true" /> Supporting
+              <span className="swatch-joined" aria-hidden="true" /> Joined
             </span>
           </div>
         </main>

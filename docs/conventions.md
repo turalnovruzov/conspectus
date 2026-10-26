@@ -21,3 +21,10 @@ Each entry is: **Rule** → **Why** → **Minimal example** → **Gotcha**. Entr
 - **Why:** one source for the Night side palette, and contrast is checked by test against the tokens.
 - **Example:** `.btn-accent { background: var(--color-accent); color: var(--color-on-accent); }`
 - **Gotcha:** the tests match `#[0-9a-f]{3,8}`, so write `·` and other non-ASCII characters literally, never as numeric entities like `&#183;`, and avoid hex-like ids such as `face` or `add`. Reading CSS with `?raw` in Vitest needs the `css.include` raw rule in `vite.config.ts`.
+
+### An app rule that must beat a design-system class uses an extra class, never source order
+
+- **Rule:** when a rule in the app's CSS has to win over a class from the shared `src/design/components.css`, raise its specificity with an extra class; never rely on which file comes later.
+- **Why:** the production build splits `src/design/components.css` into a chunk that loads after the app's CSS, while dev loads it before, so source order differs between dev and prod.
+- **Example:** `.land.country-selected { stroke: var(--color-text); }`
+- **Gotcha:** it looks fine in `npm run dev`; check computed styles under `vite preview`, which the e2e suite does.

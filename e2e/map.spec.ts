@@ -21,7 +21,7 @@ test.beforeEach(async ({ page }) => {
 test('loads the page with the sample situations coloured', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Conspectus' })).toBeVisible()
   await expect(page.getByText('The world, from above')).toBeVisible()
-  await expect(page.getByText('Sample data — made up')).toBeVisible()
+  await expect(page.getByText('Sample data · made up')).toBeVisible()
 
   const cards = page.locator('button[data-situation]')
   await expect(cards).toHaveCount(3)
@@ -85,10 +85,10 @@ test('a country in no situation says so', async ({ page }) => {
   await expect(page.locator('button[data-situation]')).toHaveCount(0)
 })
 
-test('the legend names the two roles and no stepped-out state', async ({ page }) => {
+test('the legend names the two involvement states and no stepped-out state', async ({ page }) => {
   const legend = page.locator('[data-legend]')
-  await expect(legend).toContainText('Party')
-  await expect(legend).toContainText('Supporting')
+  await expect(legend).toContainText('Pulled in')
+  await expect(legend).toContainText('Joined')
   await expect(legend).not.toContainText('Stepped out')
 })
 
@@ -138,7 +138,7 @@ test.describe('phone width', () => {
     const aside = await page.locator('aside').boundingBox()
     expect(aside!.y).toBeGreaterThanOrEqual(map!.y + map!.height)
     await expect(page.getByRole('heading', { name: 'Conspectus' })).toBeVisible()
-    await expect(page.getByText('Sample data — made up')).toBeVisible()
+    await expect(page.getByText('Sample data · made up')).toBeVisible()
     const scrollWidth = await page.evaluate(() => document.documentElement.scrollWidth)
     expect(scrollWidth).toBeLessThanOrEqual(390)
   })

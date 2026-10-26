@@ -80,9 +80,9 @@ export function involvementLines(situation: Situation, nameOf: (key: string) => 
   }
   const lines: string[] = []
   const parties = byRole.get('party')
-  if (parties) lines.push(parties.join(', '))
+  if (parties) lines.push(parties.join(' · '))
   for (const [role, names] of byRole) {
-    if (role !== 'party') lines.push(`${capitalise(role)}: ${names.join(', ')}`)
+    if (role !== 'party') lines.push(`${capitalise(role)}: ${names.join(' · ')}`)
   }
   return lines
 }

@@ -46,11 +46,11 @@ describe('parseSituations', () => {
 describe('involvementLines', () => {
   it('lists parties first, then other roles', () => {
     expect(involvementLines(byId('armed-conflict-1'), countryName)).toEqual([
-      'Kazakhstan, Uzbekistan',
+      'Kazakhstan · Uzbekistan',
       'Supporting: Turkey',
     ])
     expect(involvementLines(byId('mass-protests-1'), countryName)).toEqual(['Brazil'])
-    expect(involvementLines(byId('diplomatic-crisis-1'), countryName)).toEqual(['Canada, Australia'])
+    expect(involvementLines(byId('diplomatic-crisis-1'), countryName)).toEqual(['Canada · Australia'])
   })
 })
 
