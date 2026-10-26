@@ -1,0 +1,10 @@
+{
+  "template": "product-owner",
+  "version": "0.5.0",
+  "params": {
+    "project_name": "Conspectus",
+    "test_command": "none yet",
+    "has_screen": true,
+    "extra_deny": ""
+  }
+}
