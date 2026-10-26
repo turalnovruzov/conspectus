@@ -14,3 +14,12 @@ What is in use in this repo, and why each piece is here. This is the record the 
 
 | What | Why it's here | Decision record |
 |---|---|---|
+| `react`, `react-dom` | UI | [ADR 0001](./adr/0001-frontend-stack-react-vite-typescript-d3-geo.md) |
+| `vite`, `@vitejs/plugin-react` | Dev server and build | [ADR 0001](./adr/0001-frontend-stack-react-vite-typescript-d3-geo.md) |
+| `typescript` | Types | [ADR 0001](./adr/0001-frontend-stack-react-vite-typescript-d3-geo.md) |
+| `d3-geo` | Map projection and paths | [ADR 0001](./adr/0001-frontend-stack-react-vite-typescript-d3-geo.md) |
+| `topojson-client` | Topology to GeoJSON | [ADR 0001](./adr/0001-frontend-stack-react-vite-typescript-d3-geo.md) |
+| `world-atlas` | Country shapes | [ADR 0001](./adr/0001-frontend-stack-react-vite-typescript-d3-geo.md) |
+| `@types/react`, `@types/react-dom`, `@types/d3-geo`, `@types/topojson-client` | Types for the libraries above | [ADR 0001](./adr/0001-frontend-stack-react-vite-typescript-d3-geo.md) |
+| `vitest` | Unit tests | [ADR 0001](./adr/0001-frontend-stack-react-vite-typescript-d3-geo.md) |
+| `@playwright/test` | End-to-end tests | [ADR 0001](./adr/0001-frontend-stack-react-vite-typescript-d3-geo.md) |

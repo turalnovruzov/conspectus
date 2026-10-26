@@ -23,6 +23,7 @@ When **not** to write one:
 
 | # | Title | Status |
 |---|---|---|
+| [0001](./0001-frontend-stack-react-vite-typescript-d3-geo.md) | Frontend stack: React, Vite, TypeScript, d3-geo | Accepted |
 
 ---
 

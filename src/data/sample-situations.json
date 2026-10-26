@@ -1,0 +1,26 @@
+{
+  "situations": [
+    {
+      "id": "armed-conflict-1",
+      "kind": "Armed conflict",
+      "involved": [
+        { "country": "398", "role": "party" },
+        { "country": "860", "role": "party" },
+        { "country": "792", "role": "supporting" }
+      ]
+    },
+    {
+      "id": "mass-protests-1",
+      "kind": "Mass protests",
+      "involved": [{ "country": "076", "role": "party" }]
+    },
+    {
+      "id": "diplomatic-crisis-1",
+      "kind": "Diplomatic crisis",
+      "involved": [
+        { "country": "124", "role": "party" },
+        { "country": "036", "role": "party" }
+      ]
+    }
+  ]
+}
