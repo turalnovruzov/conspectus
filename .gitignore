@@ -11,3 +11,9 @@
 
 # macos
 .DS_Store
+
+# build and test output
+node_modules/
+dist/
+test-results/
+playwright-report/
