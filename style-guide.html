@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Conspectus design system</title>
+    <link rel="stylesheet" href="/src/design/fonts.css" />
+    <link rel="stylesheet" href="/src/design/tokens.css" />
+    <link rel="stylesheet" href="/src/design/components.css" />
+    <link rel="stylesheet" href="/src/design/style-guide.css" />
+  </head>
+  <body>
+    <main class="page">
+      <header class="head">
+        <h1 class="display">Conspectus</h1>
+        <p class="label-mono head-label">DESIGN SYSTEM / NIGHT SIDE</p>
+        <nav class="row head-nav" aria-label="Sample navigation">
+          <button type="button" class="btn btn-primary">Map</button>
+          <button type="button" class="btn btn-secondary">Graph</button>
+        </nav>
+      </header>
+
+      <section class="block">
+        <h2 class="label-mono">Colour</h2>
+        <ul class="colours">
+          <li><span class="chip" style="background: var(--color-ground)"></span><span class="name">--color-ground</span><span class="meta">0B0D12 · page ground</span></li>
+          <li><span class="chip" style="background: var(--color-land)"></span><span class="name">--color-land</span><span class="meta">1C2130 · 1.21:1 · map land</span></li>
+          <li><span class="chip" style="background: var(--color-land-edge)"></span><span class="name">--color-land-edge</span><span class="meta">2C3345 · 1.54:1 · land edge, idle node</span></li>
+          <li><span class="chip" style="background: var(--color-line)"></span><span class="name">--color-line</span><span class="meta">3A3F4B · 1.84:1 · dividers, tag outline</span></li>
+          <li><span class="chip" style="background: var(--color-edge)"></span><span class="name">--color-edge</span><span class="meta">5A6173 · 3.14:1 · graph edge</span></li>
+          <li><span class="chip" style="background: var(--color-control-line)"></span><span class="name">--color-control-line</span><span class="meta">5A6173 · 3.14:1 · control borders</span></li>
+          <li><span class="chip" style="background: var(--color-text)"></span><span class="name">--color-text</span><span class="meta">F2F2F2 · 17.36:1 · text</span></li>
+          <li><span class="chip" style="background: var(--color-text-2)"></span><span class="name">--color-text-2</span><span class="meta">C9CDD6 · 12.20:1 · body text</span></li>
+          <li><span class="chip" style="background: var(--color-label)"></span><span class="name">--color-label</span><span class="meta">A0A6B4 · 7.97:1 · mono labels</span></li>
+          <li><span class="chip" style="background: var(--color-text-struck)"></span><span class="name">--color-text-struck</span><span class="meta">8A90A0 · 6.09:1 · stepped-out text</span></li>
+          <li><span class="chip" style="background: var(--color-joined)"></span><span class="name">--color-joined</span><span class="meta">D8DBE2 · 14.02:1 · joined</span></li>
+          <li><span class="chip" style="background: var(--color-accent)"></span><span class="name">--color-accent</span><span class="meta">FF6A45 · 6.85:1 · pulled in</span></li>
+          <li><span class="chip" style="background: var(--color-accent-text)"></span><span class="name">--color-accent-text</span><span class="meta">FF8A6B · 8.42:1 · kicker text</span></li>
+          <li><span class="chip" style="background: var(--color-accent-hover)"></span><span class="name">--color-accent-hover</span><span class="meta">FF9478 · 9.03:1 · hover</span></li>
+          <li><span class="chip" style="background: var(--color-on-accent)"></span><span class="name">--color-on-accent</span><span class="meta">0B0D12 · label on accent</span></li>
+        </ul>
+      </section>
+
+      <section class="block">
+        <h2 class="label-mono">Type</h2>
+        <div class="types">
+          <div><p class="name">--text-display · 800 · -2.5px</p><p class="t-display">Conspectus</p></div>
+          <div><p class="name">--text-title · 800 · -1px</p><p class="t-title">[Situation name]</p></div>
+          <div><p class="name">--text-body-lg · 400</p><p class="t-body-lg">[One line on what is happening.]</p></div>
+          <div><p class="name">--text-body · 500</p><p class="t-body">Map, Graph, Follow</p></div>
+          <div><p class="name">--text-small · 400</p><p class="t-small">[Country A] · [Country B]</p></div>
+          <div><p class="name">--text-label · mono</p><p class="label-mono">VIEW FROM ORBIT / [DATE] · [TIME] UTC</p></div>
+        </div>
+      </section>
+
+      <section class="block">
+        <h2 class="label-mono">Spacing</h2>
+        <ul class="spaces">
+          <li><span class="name">--space-6</span><span class="bar" style="width: var(--space-6)"></span></li>
+          <li><span class="name">--space-8</span><span class="bar" style="width: var(--space-8)"></span></li>
+          <li><span class="name">--space-10</span><span class="bar" style="width: var(--space-10)"></span></li>
+          <li><span class="name">--space-12</span><span class="bar" style="width: var(--space-12)"></span></li>
+          <li><span class="name">--space-14</span><span class="bar" style="width: var(--space-14)"></span></li>
+          <li><span class="name">--space-16</span><span class="bar" style="width: var(--space-16)"></span></li>
+          <li><span class="name">--space-20</span><span class="bar" style="width: var(--space-20)"></span></li>
+          <li><span class="name">--space-24</span><span class="bar" style="width: var(--space-24)"></span></li>
+          <li><span class="name">--space-28</span><span class="bar" style="width: var(--space-28)"></span></li>
+          <li><span class="name">--space-40</span><span class="bar" style="width: var(--space-40)"></span></li>
+          <li><span class="name">--space-48</span><span class="bar" style="width: var(--space-48)"></span></li>
+        </ul>
+      </section>
+
+      <section class="block">
+        <h2 class="label-mono">Radius and borders</h2>
+        <div class="row boxes">
+          <div class="box box-sharp"><span class="name">--radius-sharp</span></div>
+          <div class="box box-round"><span class="name">--radius-round</span></div>
+          <div class="box box-hairline"><span class="name">--border-hairline</span></div>
+          <div class="box box-accent"><span class="name">--border-accent</span></div>
+          <div class="box box-stepped-out"><span class="name">--border-stepped-out</span></div>
+        </div>
+      </section>
+
+      <section class="block">
+        <h2 class="label-mono">Buttons</h2>
+        <div class="row">
+          <button type="button" class="btn btn-primary">Map</button>
+          <button type="button" class="btn btn-secondary">Graph</button>
+        </div>
+        <div class="row">
+          <button type="button" class="btn btn-accent btn-lg">Follow</button>
+          <button type="button" class="btn btn-secondary btn-lg">Details</button>
+        </div>
+        <p class="label-mono">44px default · 48px large</p>
+      </section>
+
+      <section class="block">
+        <h2 class="label-mono">Panel</h2>
+        <div class="panels">
+          <article class="panel">
+            <p class="kicker">SITUATION 01</p>
+            <h3 class="t-title">[Situation name]</h3>
+            <p class="t-body-lg body-2">[One line on what is happening.]</p>
+            <p class="t-small body-2">[Country A] · [Country B] · <span class="struck">[Country C]</span></p>
+          </article>
+          <div class="panel-quiet">
+            <p class="label-mono">CONNECTIONS</p>
+            <p class="t-small body-2">The quiet panel: a hairline rule instead of the accent.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="block">
+        <h2 class="label-mono">Tags</h2>
+        <div class="row">
+          <span class="tag">Armed conflict</span>
+          <span class="tag">Protest</span>
+          <span class="tag tag-stepped-out">Stepped out</span>
+        </div>
+      </section>
+
+      <section class="block">
+        <h2 class="label-mono">Input</h2>
+        <div class="field">
+          <label class="field-label" for="search">SEARCH COUNTRIES</label>
+          <input class="field-input" id="search" type="text" placeholder="Type a country" />
+        </div>
+      </section>
+
+      <section class="block">
+        <h2 class="label-mono">Map involvement</h2>
+        <svg class="art" viewBox="0 0 480 220" role="img" aria-label="Sample map: one country pulled in, one joined, one stepped out">
+          <defs>
+            <radialGradient id="glow">
+              <stop offset="0" class="glow-stop" />
+              <stop offset="1" class="glow-stop-fade" />
+            </radialGradient>
+          </defs>
+          <path class="land" d="M20 40 L200 24 L260 90 L210 190 L60 200 Z" />
+          <path class="land" d="M290 50 L460 40 L450 170 L320 190 Z" />
+          <circle class="glow" cx="120" cy="110" r="64" />
+          <path data-involvement="pulled-in" class="inv-pulled-in" d="M80 80 L150 70 L170 120 L110 150 L70 130 Z" />
+          <path data-involvement="joined" class="inv-joined" d="M180 60 L240 90 L215 160 L170 130 Z" />
+          <path data-involvement="stepped-out" class="inv-stepped-out" d="M330 70 L420 62 L412 140 L340 150 Z" />
+        </svg>
+        <div class="row legend">
+          <span class="legend-item"><span class="swatch-pulled-in"></span>Pulled in</span>
+          <span class="legend-item"><span class="swatch-joined"></span>Joined</span>
+          <span class="legend-item"><span class="swatch-stepped-out"></span>Stepped out</span>
+        </div>
+      </section>
+
+      <section class="block">
+        <h2 class="label-mono">Graph</h2>
+        <svg class="art" viewBox="0 0 320 160" role="img" aria-label="Sample connections: one focus node, two joined, one stepped out, one idle">
+          <line class="graph-edge" x1="160" y1="80" x2="70" y2="40" />
+          <line class="graph-edge" x1="160" y1="80" x2="250" y2="40" />
+          <line class="graph-edge-stepped-out" x1="160" y1="80" x2="250" y2="125" />
+          <line class="graph-edge" x1="160" y1="80" x2="70" y2="125" />
+          <circle class="glow" cx="160" cy="80" r="26" />
+          <circle data-involvement="pulled-in" class="graph-node-focus" cx="160" cy="80" />
+          <circle data-involvement="joined" class="graph-node-joined" cx="70" cy="40" />
+          <circle data-involvement="joined" class="graph-node-joined" cx="250" cy="40" />
+          <circle data-involvement="stepped-out" class="graph-node-stepped-out" cx="250" cy="125" />
+          <circle class="graph-node-idle" cx="70" cy="125" />
+        </svg>
+      </section>
+    </main>
+  </body>
+</html>

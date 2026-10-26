@@ -138,6 +138,8 @@ Looked at in a browser, driven by a browser tool.
 
 Tried on mock data the auditor makes until a news source is chosen.
 
+Design system: the style guide is `/style-guide.html` on the dev server (`npm run dev`).
+
 No hard limits stated yet.
 
 *General, not exact: the agent works out commands, inputs and data from the project as it is now and the work at hand. The limits here are hard.*
@@ -148,7 +150,7 @@ No deploy stage.
 
 ### Stack
 
-React + Vite + TypeScript, `d3-geo` for the map, Vitest and Playwright; frontend only. Recorded in `docs/stack.md` and ADR 0001.
+React + Vite + TypeScript, `d3-geo` for the map, Vitest and Playwright; design tokens in plain CSS (ADR 0002); frontend only. Recorded in `docs/stack.md` and ADR 0001.
 
 ### Project-only rules
 

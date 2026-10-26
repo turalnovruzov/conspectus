@@ -1,0 +1,214 @@
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-height: var(--control-h);
+  padding: var(--space-10) var(--space-20);
+  font-family: var(--font-sans);
+  font-size: var(--text-body);
+  font-weight: var(--weight-medium);
+  border: 0;
+  border-radius: var(--radius-sharp);
+  cursor: pointer;
+}
+
+.btn-primary {
+  background: var(--color-text);
+  color: var(--color-ground);
+}
+
+.btn-accent {
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+}
+
+.btn-accent:hover {
+  background: var(--color-accent-hover);
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--color-text);
+  border: var(--border-control);
+}
+
+.btn-lg {
+  min-height: var(--control-h-lg);
+  font-size: var(--text-body-lg);
+}
+
+.btn:focus-visible,
+.field-input:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-10);
+  padding-top: var(--space-14);
+  border-top: var(--border-accent);
+}
+
+.panel-quiet {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  padding-top: var(--space-10);
+  border-top: var(--border-hairline);
+}
+
+.label-mono,
+.field-label {
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  line-height: var(--leading-body);
+  color: var(--color-label);
+}
+
+.kicker {
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  line-height: var(--leading-body);
+  color: var(--color-accent-text);
+}
+
+.tag {
+  display: inline-block;
+  padding: var(--space-4) var(--space-8);
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  color: var(--color-text-2);
+  border: var(--border-hairline);
+  border-radius: var(--radius-sharp);
+}
+
+.tag-stepped-out {
+  color: var(--color-text-struck);
+  border: var(--border-stepped-out);
+  text-decoration: line-through;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.field-input {
+  box-sizing: border-box;
+  min-height: var(--control-h);
+  padding: var(--space-10) var(--space-12);
+  font-family: var(--font-sans);
+  font-size: var(--text-body-lg);
+  color: var(--color-text);
+  background: transparent;
+  border: var(--border-control);
+  border-radius: var(--radius-sharp);
+}
+
+.field-input::placeholder {
+  color: var(--color-label);
+}
+
+/* Struck text keeps its own grey token: the line-through alone says "stepped out". */
+.struck {
+  color: var(--color-text-struck);
+  text-decoration: line-through;
+}
+
+.land {
+  fill: var(--color-land);
+  stroke: var(--color-land-edge);
+  stroke-width: 1.5;
+}
+
+.inv-pulled-in {
+  fill: var(--involvement-pulled-in-fill);
+}
+
+.inv-joined {
+  fill: var(--involvement-joined-fill);
+}
+
+.inv-stepped-out {
+  fill: var(--involvement-stepped-out-fill);
+  stroke: var(--involvement-stepped-out-stroke);
+  stroke-width: 1.5;
+  stroke-dasharray: var(--involvement-stepped-out-dash);
+}
+
+.glow-stop {
+  stop-color: var(--color-accent);
+  stop-opacity: var(--involvement-glow-opacity);
+}
+
+.glow-stop-fade {
+  stop-color: var(--color-accent);
+  stop-opacity: 0;
+}
+
+.glow {
+  fill: url(#glow);
+}
+
+.graph-edge {
+  stroke: var(--graph-edge);
+  stroke-width: 1;
+}
+
+.graph-edge-stepped-out {
+  stroke: var(--graph-edge);
+  stroke-width: 1;
+  stroke-dasharray: var(--graph-edge-stepped-out-dash);
+}
+
+.graph-node-joined {
+  r: var(--graph-node-r);
+  fill: var(--involvement-joined-fill);
+}
+
+.graph-node-stepped-out {
+  r: var(--graph-node-r);
+  fill: var(--involvement-stepped-out-fill);
+  stroke: var(--involvement-stepped-out-stroke);
+  stroke-dasharray: var(--graph-node-stepped-out-dash);
+}
+
+.graph-node-idle {
+  r: var(--graph-node-r);
+  fill: var(--color-land-edge);
+}
+
+.graph-node-focus {
+  r: var(--graph-node-focus-r);
+  fill: var(--involvement-pulled-in-fill);
+}
+
+.swatch-pulled-in,
+.swatch-joined,
+.swatch-stepped-out {
+  display: inline-block;
+  box-sizing: border-box;
+  border-radius: var(--radius-round);
+}
+
+.swatch-pulled-in {
+  width: var(--space-12);
+  height: var(--space-12);
+  background: var(--involvement-pulled-in-fill);
+}
+
+.swatch-joined {
+  width: var(--space-12);
+  height: var(--space-12);
+  background: var(--involvement-joined-fill);
+}
+
+.swatch-stepped-out {
+  width: var(--space-10);
+  height: var(--space-10);
+  border: var(--border-stepped-out);
+}

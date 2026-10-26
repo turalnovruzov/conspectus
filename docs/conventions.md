@@ -14,3 +14,10 @@ Each entry is: **Rule** → **Why** → **Minimal example** → **Gotcha**. Entr
 - **Why:** map state is testable without screenshots and survives look changes.
 - **Example:** `await expect(page.locator('[data-country="792"]')).toHaveAttribute('data-state', 'supporting')`
 - **Gotcha:** colour is a `fill` attribute on the path, so it can be asserted too. The country key is `id ?? name` because three countries-110m shapes have no id.
+
+### Design values come from tokens, never raw
+
+- **Rule:** design colours and sizes are used only through `var(--token)` from `src/design/tokens.css`; components (`src/design/components.css`) and pages carry no raw `#hex`, `rgb(` or `hsl(`, and no SVG `fill=`/`stroke=`/`stop-color=` attributes. SVG gets its colour from classes.
+- **Why:** one source for the Night side palette, and contrast is checked by test against the tokens.
+- **Example:** `.btn-accent { background: var(--color-accent); color: var(--color-on-accent); }`
+- **Gotcha:** the tests match `#[0-9a-f]{3,8}`, so write `·` and other non-ASCII characters literally, never as numeric entities like `&#183;`, and avoid hex-like ids such as `face` or `add`. Reading CSS with `?raw` in Vitest needs the `css.include` raw rule in `vite.config.ts`.
