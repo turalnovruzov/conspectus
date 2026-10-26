@@ -2,9 +2,9 @@ import { describe, expect, it } from 'vitest'
 import sample from './data/sample-situations.json'
 import { countryName } from './world'
 import {
-  PALETTE,
   countryFills,
   involvementLines,
+  involvementState,
   parseSituations,
   situationsForCountry,
 } from './situations'
@@ -13,9 +13,8 @@ const list = parseSituations(sample)
 const byId = (id: string) => list.find((s) => s.id === id)!
 
 describe('parseSituations', () => {
-  it('reads the sample: three situations in order with palette colours', () => {
+  it('reads the sample: three situations in order', () => {
     expect(list.map((s) => s.kind)).toEqual(['Armed conflict', 'Mass protests', 'Diplomatic crisis'])
-    expect(list.map((s) => s.color)).toEqual(['#f97316', '#38bdf8', '#e879f9'])
   })
 
   it('accepts an arbitrary kind and an arbitrary role', () => {
@@ -42,11 +41,6 @@ describe('parseSituations', () => {
     const one = { id: 'x', kind: 'k', involved: [] }
     expect(() => parseSituations({ situations: [one, one] })).toThrow(/duplicate/)
   })
-
-  it('cycles the palette: the 7th situation gets the first colour again', () => {
-    const many = Array.from({ length: 7 }, (_, i) => ({ id: `s${i}`, kind: 'k', involved: [] }))
-    expect(parseSituations({ situations: many })[6].color).toBe(PALETTE[0])
-  })
 })
 
 describe('involvementLines', () => {
@@ -67,16 +61,23 @@ describe('situationsForCountry', () => {
   })
 })
 
+describe('involvementState', () => {
+  it('maps party to pulled-in and every other role to joined', () => {
+    expect(involvementState('party')).toBe('pulled-in')
+    expect(involvementState('supporting')).toBe('joined')
+    expect(involvementState('mediator')).toBe('joined')
+  })
+})
+
 describe('countryFills', () => {
-  it('with no selection colours every situation country', () => {
+  it('with no selection fills every situation country with its involvement', () => {
     const fills = countryFills(list, null)
     expect(fills.size).toBe(6)
-    expect(fills.get('076')?.color).toBe('#38bdf8')
-    expect(fills.get('792')).toEqual({ color: '#fdba74', role: 'supporting' })
-    expect(fills.get('398')?.color).toBe('#f97316')
+    expect(fills.get('076')).toEqual({ role: 'party', involvement: 'pulled-in' })
+    expect(fills.get('792')).toEqual({ role: 'supporting', involvement: 'joined' })
   })
 
-  it('with a selection colours only that situation', () => {
+  it('with a selection fills only that situation', () => {
     expect([...countryFills(list, 'mass-protests-1').keys()]).toEqual(['076'])
   })
 })

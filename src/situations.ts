@@ -7,24 +7,17 @@ export interface Situation {
   id: string
   kind: string
   involved: Involvement[]
-  color: string
 }
+
+export type InvolvementState = 'pulled-in' | 'joined'
 
 export interface Fill {
-  color: string
   role: string
+  involvement: InvolvementState
 }
 
-export const PALETTE = ['#f97316', '#38bdf8', '#e879f9', '#a3e635', '#facc15', '#f43f5e']
-
-// Solid paler tint per palette colour for supporting countries, as drawn on the design board.
-export const TINTS: Record<string, string> = {
-  '#f97316': '#fdba74',
-  '#38bdf8': '#7dd3fc',
-  '#e879f9': '#f0abfc',
-  '#a3e635': '#bef264',
-  '#facc15': '#fde047',
-  '#f43f5e': '#fda4af',
+export function involvementState(role: string): InvolvementState {
+  return role === 'party' ? 'pulled-in' : 'joined'
 }
 
 function nonEmptyString(value: unknown, field: string): string {
@@ -54,7 +47,7 @@ export function parseSituations(raw: unknown): Situation[] {
       country: nonEmptyString(inv?.country, `situations[${i}].involved[${j}].country`),
       role: nonEmptyString(inv?.role, `situations[${i}].involved[${j}].role`),
     }))
-    return { id, kind, involved, color: PALETTE[i % PALETTE.length] }
+    return { id, kind, involved }
   })
 }
 
@@ -68,8 +61,7 @@ export function countryFills(list: Situation[], selectedId: string | null): Map<
     if (selectedId !== null && s.id !== selectedId) continue
     for (const inv of s.involved) {
       if (fills.has(inv.country)) continue
-      const color = inv.role === 'supporting' ? (TINTS[s.color] ?? s.color) : s.color
-      fills.set(inv.country, { color, role: inv.role })
+      fills.set(inv.country, { role: inv.role, involvement: involvementState(inv.role) })
     }
   }
   return fills
