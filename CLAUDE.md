@@ -152,6 +152,10 @@ No deploy stage.
 
 React + Vite + TypeScript, `d3-geo` for the map, Vitest and Playwright; design tokens in plain CSS (ADR 0002); frontend only. Recorded in `docs/stack.md` and ADR 0001.
 
+### Design system
+
+The cloud design system https://claude.ai/artifact/5VUQ4UqqEg7D154QpH14ib is the source of truth for the look. `src/design/` is the app's copy and must follow it. UI work reads the cloud design system first; `/style-guide.html` shows the copy.
+
 ### Project-only rules
 
 - How the agents read the news is open, expected to be worked out by experiment.

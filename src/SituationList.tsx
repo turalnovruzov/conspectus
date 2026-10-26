@@ -3,6 +3,7 @@ import { countryName } from './world'
 
 interface Props {
   situations: Situation[]
+  allSituations: Situation[]
   selectedSituationId: string | null
   selectedCountry: string | null
   onPickSituation: (id: string) => void
@@ -11,6 +12,7 @@ interface Props {
 
 export default function SituationList({
   situations,
+  allSituations,
   selectedSituationId,
   selectedCountry,
   onPickSituation,
@@ -22,7 +24,7 @@ export default function SituationList({
       {countryLabel !== null && (
         <div className="filter">
           <span>Situations involving {countryLabel}</span>
-          <button type="button" className="show-all" onClick={onShowAll}>
+          <button type="button" className="btn btn-secondary" onClick={onShowAll}>
             Show all
           </button>
         </div>
@@ -32,23 +34,22 @@ export default function SituationList({
       )}
       {situations.map((s) => {
         const selected = s.id === selectedSituationId
+        // Numbered by place in the full list so filtering does not renumber.
+        const position = String(allSituations.findIndex((o) => o.id === s.id) + 1).padStart(2, '0')
         return (
           <button
             key={s.id}
             type="button"
-            className="card"
+            className={selected ? 'card panel' : 'card panel-quiet'}
             data-situation={s.id}
             aria-pressed={selected}
             aria-label={s.kind}
-            style={selected ? { background: '#141c33', borderColor: s.color } : undefined}
             onClick={() => onPickSituation(s.id)}
           >
-            <span className="card-title">
-              <span className="dot" style={{ background: s.color }} />
-              {s.kind}
-            </span>
+            <span className={selected ? 'kicker' : 'label-mono'}>SITUATION {position}</span>
+            <span className="card-title">{s.kind}</span>
             {involvementLines(s, countryName).map((line) => (
-              <span key={line} className={line.includes(': ') ? 'card-role' : 'card-line'}>
+              <span key={line} className="card-line">
                 {line}
               </span>
             ))}

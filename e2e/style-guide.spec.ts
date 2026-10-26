@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { contrast, type Rgb } from '../src/design/contrast'
+import { renderedText } from './rendered-contrast'
 
 const ORIGIN = 'http://localhost:4173'
 
@@ -76,24 +77,7 @@ test('input has a label and a focus ring', async ({ page }) => {
 
 test('rendered text contrast', async ({ page }) => {
   await open(page)
-  const results = await page.evaluate(() => {
-    const parse = (c: string) => (c.match(/[\d.]+/g) ?? []).map(Number)
-    const opaque = (c: string) => {
-      const p = parse(c)
-      return p.length >= 3 && (p.length === 3 || p[3] > 0)
-    }
-    const out: { text: string; fg: number[]; bg: number[] }[] = []
-    for (const el of document.body.querySelectorAll('*')) {
-      if (el.closest('svg')) continue
-      const own = [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent!.trim() !== '')
-      if (!own || !(el as HTMLElement).offsetParent && getComputedStyle(el).position !== 'fixed') continue
-      let bgEl: Element | null = el
-      while (bgEl && !opaque(getComputedStyle(bgEl).backgroundColor)) bgEl = bgEl.parentElement
-      const bg = bgEl ? parse(getComputedStyle(bgEl).backgroundColor) : [255, 255, 255]
-      out.push({ text: el.textContent!.trim().slice(0, 30), fg: parse(getComputedStyle(el).color), bg })
-    }
-    return out
-  })
+  const results = await renderedText(page)
   expect(results.length).toBeGreaterThan(0)
   for (const r of results) {
     const ratio = contrast(r.fg.slice(0, 3) as Rgb, r.bg.slice(0, 3) as Rgb)

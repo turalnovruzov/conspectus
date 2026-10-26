@@ -22,11 +22,11 @@ export default function App() {
   return (
     <div className="page">
       <header>
-        <div className="brand">
-          <h1>Conspectus</h1>
-          <span className="tagline">The world, from above</span>
-        </div>
-        <span className="badge">Sample data — made up</span>
+        <h1>Conspectus</h1>
+        <span className="label-mono header-tagline">THE WORLD, FROM ABOVE</span>
+        <span className="header-badge">
+          <span className="tag">SAMPLE DATA · MADE UP</span>
+        </span>
       </header>
       <div className="body">
         <main>
@@ -35,11 +35,20 @@ export default function App() {
             selectedCountry={selectedCountry}
             onPickCountry={pickCountry}
           />
+          <div className="legend" data-legend>
+            <span className="legend-item">
+              <span className="swatch-pulled-in" aria-hidden="true" /> Pulled in
+            </span>
+            <span className="legend-item">
+              <span className="swatch-joined" aria-hidden="true" /> Joined
+            </span>
+          </div>
         </main>
         <aside>
-          <h2>Situations</h2>
+          <h2 className="label-mono">SITUATIONS</h2>
           <SituationList
             situations={visible}
+            allSituations={situations}
             selectedSituationId={selectedSituationId}
             selectedCountry={selectedCountry}
             onPickSituation={pickSituation}

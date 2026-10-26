@@ -28,3 +28,7 @@ Issue #3 asks for a design system. Tural chose the "E · Night side" board: Swis
 | `@fontsource` npm packages | Managed font updates | A new dependency | Rejected: no new dependency |
 | CSS framework or token tool (Tailwind, Style Dictionary) | Generated tokens and utilities | A new library | Rejected: no framework or library |
 | Plain CSS custom properties | Nothing to install or learn | Manual upkeep | Chosen |
+
+## Amendment (2026-10-26)
+
+The cloud design system https://claude.ai/artifact/5VUQ4UqqEg7D154QpH14ib is the source of truth for the look; the CSS in `src/design/` is the app's copy of it. The map page now uses it (#3), which supersedes "nothing is restyled yet" above.
