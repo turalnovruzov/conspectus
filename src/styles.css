@@ -112,9 +112,11 @@ aside h2 {
 }
 
 /* The border and padding shorthands would wipe the panel's top rule, so only the other sides
-   are reset. The inner padding keeps the focus ring clear of the text. */
+   are reset. The inner padding keeps the focus ring clear of the text; the equal negative side
+   margin keeps the text flush with the rest of the side panel. */
 .card {
-  width: 100%;
+  width: calc(100% + 2 * var(--space-8));
+  margin-inline: calc(-1 * var(--space-8));
   background: transparent;
   border-left: 0;
   border-right: 0;
