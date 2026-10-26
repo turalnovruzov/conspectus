@@ -13,7 +13,7 @@ Each entry is: **Rule** → **Why** → **Minimal example** → **Gotcha**. Entr
 - **Rule:** every country path and situation card exposes its state as `data-*` attributes: `data-country` (ISO numeric id, or the name when the shape has none), `data-state` (the role, or `none`) and `data-selected` on paths, and `data-situation` on cards (a card's selection is `aria-pressed`, not `data-selected`). e2e tests assert on these, not on CSS or pixels.
 - **Why:** map state is testable without screenshots and survives look changes.
 - **Example:** `await expect(page.locator('[data-country="792"]')).toHaveAttribute('data-state', 'supporting')`
-- **Gotcha:** colour is a `fill` attribute on the path, so it can be asserted too. The country key is `id ?? name` because three countries-110m shapes have no id.
+- **Gotcha:** colour is no longer a `fill` attribute (it comes from classes): assert `data-state` or `data-involvement`, and the computed `fill` when colour matters. The country key is `id ?? name` because three countries-110m shapes have no id.
 
 ### Design values come from tokens, never raw
 
