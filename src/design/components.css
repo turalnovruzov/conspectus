@@ -142,6 +142,16 @@
 
 .glow-stop {
   stop-color: var(--color-accent);
+  stop-opacity: var(--involvement-glow-opacity);
+}
+
+.glow-stop-fade {
+  stop-color: var(--color-accent);
+  stop-opacity: 0;
+}
+
+.glow {
+  fill: url(#glow);
 }
 
 .graph-edge {
