@@ -38,7 +38,7 @@ export function scriptedLlm(options: ConstructorParameters<typeof FakeLlm>[0] = 
   }))
   llm.fallback('summarize', (req: { user: string }) => ({
     situations: [...req.user.matchAll(/^(S\d+) · title: (.*?) ·/gm)].map(([, h, title]) => ({
-      situation: h, title, oneLine: 'Now.', summary: 'So far.', scope: 'ongoing', major: false, category: { pick: null, new: null }, events: [],
+      situation: h, title, oneLine: 'Now.', summary: 'So far.', scope: 'ongoing', major: false, category: { action: 'pick', handle: null, name: null, definition: null, parent: null }, events: [],
     })),
   }))
   llm.fallback('consolidate', { pairs: [] })

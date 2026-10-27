@@ -18,7 +18,7 @@ async function versionCounts(): Promise<{ situation: number; event: number }> {
 
 describe('versions', () => {
   it('only grow across two runs', async () => {
-    const summary = { situations: [{ situation: 'S1', title: 'War', oneLine: 'o', summary: 's', scope: 'ongoing', major: false, category: { pick: null, new: null }, events: [] }] }
+    const summary = { situations: [{ situation: 'S1', title: 'War', oneLine: 'o', summary: 's', scope: 'ongoing', major: false, category: { action: 'pick', handle: null, name: null, definition: null, parent: null }, events: [] }] }
     const first = await newContext(db, new Date('2026-10-25T12:00:00Z'))
     await readItem(db, { headline: 'Shelling in Exampleville', publishedAt: new Date('2026-10-25T08:00:00Z') })
     first.llm.script('judge', { decisions: [decision('I1', { action: 'new_situation', eventTitle: 'e', newSituation: { title: 'War', oneLine: 'x', scope: 'ongoing' } })] })

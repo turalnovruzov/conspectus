@@ -11,8 +11,11 @@ export const summarizeSchema = z.object({
       scope: z.enum(['ongoing', 'one_off']),
       major: z.boolean(),
       category: z.object({
-        pick: z.string().nullable(),
-        new: z.object({ name: z.string(), definition: z.string(), parent: z.string().nullable() }).nullable(),
+        action: z.enum(['pick', 'new']),
+        handle: z.string().nullable(),
+        name: z.string().nullable(),
+        definition: z.string().nullable(),
+        parent: z.string().nullable(),
       }),
       events: z.array(z.object({ handle: z.string(), title: z.string() })),
     }),
@@ -28,7 +31,7 @@ export const SUMMARIZE_SYSTEM = `You keep the rolling summaries of the situation
 - summary: at most 120 words: the story so far with the new events folded in, the latest state last. Facts from the items only, no speculation. Name the actors, places and what is at stake: later items are matched against this summary.
 - scope: ongoing for a story expected to continue (conflict, crisis, campaign, negotiation, a disaster's aftermath); one_off for a single incident that is not part of a larger story.
 - major: true only when the situation matters to the world on its own, whatever its scope: for example a war between states, a coup, a mass-casualty disaster or attack, the death of a head of state, a crisis that moves world markets or draws in great powers. Otherwise false.
-- category: every situation gets one. Categories are a growing, nestable list of kinds of situation, each with a definition. Set pick to the C handle of the most specific listed category whose definition fits, and new to null. When the list is empty or none fits, set pick to null and propose new: a short general name for the kind of situation (never about one country or one story, e.g. "Armed conflict", "Election", "Natural disaster", "Public health emergency"), a one-sentence definition of what belongs in it, and parent (the C handle of a broader listed category, or null). Never propose a category that means the same as a listed one; when two situations in this batch need the same new category, propose it with the same name for both.
+- category: every situation gets one. Categories are a growing, nestable list of kinds of situation, each with a definition, listed under CATEGORIES with C handles. When a listed category's definition fits, set action to pick and handle to the C handle of the most specific one that fits (name, definition and parent null). When the list is empty or none fits, set action to new, handle null, and propose: name, a short general name for the kind of situation (never about one country or one story, e.g. "Armed conflict", "Election", "Natural disaster", "Public health emergency"); definition, one sentence saying what belongs in it; parent, the C handle of a broader listed category or null. handle only ever holds a C handle from the list. Never propose a category that means the same as a listed one; when two situations in this batch need the same new category, give it the same name for both.
 - events: for a listed event whose title the new items show to be wrong or too vague, its handle and a better title of at most 20 words; otherwise leave the list empty.
 
 ${DATA_RULE}

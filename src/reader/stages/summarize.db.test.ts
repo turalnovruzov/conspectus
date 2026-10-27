@@ -14,7 +14,7 @@ const now = new Date('2026-10-26T12:00:00Z')
 const summary = (fields: Record<string, unknown>) => ({
   situations: [{
     situation: 'S1', title: 'Example war', oneLine: 'Fighting goes on.', summary: 'A long story.', scope: 'ongoing', major: true,
-    category: { pick: null, new: null }, events: [], ...fields,
+    category: { action: 'pick', handle: null, name: null, definition: null, parent: null }, events: [], ...fields,
   }],
 })
 
@@ -32,7 +32,7 @@ describe('summarize', () => {
   it('creates a new category only after the prompt listed the existing ones', async () => {
     await db.insert(categories).values({ name: 'Armed conflict', definition: 'Organised fighting.', embedding: hashVector('Armed conflict'), embeddingModel: 'fake/embed' })
     const ctx = await touched()
-    ctx.llm.script('summarize', summary({ category: { pick: null, new: { name: 'Border war', definition: 'Fighting over a border.', parent: 'C1' } } }))
+    ctx.llm.script('summarize', summary({ category: { action: 'new', handle: null, name: 'Border war', definition: 'Fighting over a border.', parent: 'C1' } }))
     await summarize(ctx)
     const prompt = ctx.llm.callsFor('summarize')[0].user
     expect(prompt).toMatch(/^C1 · Armed conflict — Organised fighting\.$/m)
@@ -42,6 +42,17 @@ describe('summarize', () => {
     expect(created.embeddingModel).toBe('fake/embed')
     const [s] = await db.select().from(situations)
     expect(s.categoryId).toBe(created.id)
+  })
+
+  it('picks a listed category by its handle', async () => {
+    await db.insert(categories).values({ name: 'Armed conflict', definition: 'Organised fighting.', embedding: hashVector('Armed conflict'), embeddingModel: 'fake/embed' })
+    const ctx = await touched()
+    ctx.llm.script('summarize', summary({ category: { action: 'pick', handle: 'C1', name: null, definition: null, parent: null } }))
+    await summarize(ctx)
+    const [s] = await db.select().from(situations)
+    const [c] = await db.select().from(categories)
+    expect(s.categoryId).toBe(c.id)
+    expect(await db.$count(categories)).toBe(1)
   })
 
   it('stores one_line, scope and major, re-embeds, and writes a version', async () => {

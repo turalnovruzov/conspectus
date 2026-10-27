@@ -5,7 +5,7 @@ import { type StageContext, isoDay } from '../context.ts'
 import { countryNameOf } from '../countries.ts'
 import { LlmOutputError } from '../llm.ts'
 import type { Extraction } from '../prompts/read.ts'
-import { SUMMARIZE_SYSTEM, type SummarizeSituation, summarizeSchema, summarizeUser } from '../prompts/summarize.ts'
+import { SUMMARIZE_SYSTEM, type SummarizeOutput, type SummarizeSituation, summarizeSchema, summarizeUser } from '../prompts/summarize.ts'
 import { versionEvent, versionSituation } from '../versions.ts'
 import { type CategoryRow, allCategories, nearestCategories, pathOf, resolveMerged } from './categories.ts'
 import { openCountries } from './situation-ops.ts'
@@ -150,28 +150,25 @@ export async function summarize(ctx: StageContext): Promise<number> {
 
 async function chooseCategory(
   ctx: StageContext,
-  choice: { pick: string | null; new: { name: string; definition: string; parent: string | null } | null },
+  choice: SummarizeOutput['situations'][number]['category'],
   byHandle: Map<string, string>,
   byId: Map<string, CategoryRow>,
 ): Promise<string | null> {
-  const picked = choice.pick ? byHandle.get(choice.pick.trim()) : undefined
+  const picked = choice.handle ? byHandle.get(choice.handle.trim()) : undefined
   if (picked) return resolveMerged(picked, byId)
-  const proposal = choice.new
-  if (!proposal || !proposal.name.trim() || !proposal.definition.trim()) return null
-  const name = proposal.name.trim().slice(0, 80)
+  const name = choice.name?.trim().slice(0, 80) ?? ''
+  const definition = choice.definition?.trim() ?? ''
+  if (choice.action !== 'new' || !name || !definition) return null
   const [existing] = await ctx.db
     .select({ id: categories.id })
     .from(categories)
     .where(sql`lower(${categories.name}) = lower(${name})`)
   if (existing) return resolveMerged(existing.id, byId)
-  const parentId = proposal.parent ? (byHandle.get(proposal.parent.trim()) ?? null) : null
-  const [vector] = await ctx.llm.embed([`${name}: ${proposal.definition.trim()}`])
+  const parentId = choice.parent ? (byHandle.get(choice.parent.trim()) ?? null) : null
+  const [vector] = await ctx.llm.embed([`${name}: ${definition}`])
   const [created] = await ctx.db
     .insert(categories)
-    .values({
-      name, definition: proposal.definition.trim(), parentId: resolveMerged(parentId, byId),
-      embedding: vector, embeddingModel: ctx.llm.embeddingModel,
-    })
+    .values({ name, definition, parentId: resolveMerged(parentId, byId), embedding: vector, embeddingModel: ctx.llm.embeddingModel })
     .returning()
   byId.set(created.id, { id: created.id, name: created.name, definition: created.definition, parentId: created.parentId, mergedIntoId: null })
   return created.id
