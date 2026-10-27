@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { z } from 'zod'
 import OpenAI from 'openai'
+import { mapLimit } from './concurrency'
 import { LlmOutputError, LlmTransportError, createOpenRouterLlm, isTransportError } from './llm'
 import { type CallRecord, SpendCeilingError, SpendLedger } from './spend'
 
@@ -64,6 +65,19 @@ describe('createOpenRouterLlm', () => {
     expect(results.map((r) => r.status)).toEqual(['fulfilled', 'rejected'])
     expect((results[1] as PromiseRejectedResult).reason).toBeInstanceOf(SpendCeilingError)
     expect(fetchFn).toHaveBeenCalledTimes(1)
+  })
+
+  it('four calls run through mapLimit at once: only those whose reservations fit are sent, and the spend stays under the ceiling', async () => {
+    const { llm, fetchFn, ledger, rows } = setup(0.0013, () => chatResponse('{"ok": true}', 0.0006))
+    fetchFn.mockImplementation(async () => {
+      await new Promise((r) => setTimeout(r, 20))
+      return chatResponse('{"ok": true}', 0.0006)
+    })
+    const big = { ...req, user: 'x'.repeat(594) }
+    await expect(mapLimit([1, 2, 3, 4, 5, 6], 4, () => llm.chatJson(big))).rejects.toBeInstanceOf(SpendCeilingError)
+    expect(fetchFn).toHaveBeenCalledTimes(2)
+    expect(rows).toHaveLength(2)
+    expect(ledger.spentUsd).toBeLessThanOrEqual(0.0013)
   })
 
   it('throws before any request for a model without pricing', () => {

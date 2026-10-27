@@ -1,5 +1,7 @@
 import { and, eq, inArray, isNotNull, isNull, ne, or } from 'drizzle-orm'
 import { sourceItems } from '../../db/schema.ts'
+import { mapLimit } from '../concurrency.ts'
+import { MODEL_CONCURRENCY } from '../config.ts'
 import { type StageContext, noteLlmFailure } from '../context.ts'
 import { EMBED_BATCH, isBatchFailure } from '../llm.ts'
 import type { Extraction } from '../prompts/read.ts'
@@ -21,16 +23,17 @@ export async function embed(ctx: StageContext): Promise<number> {
         or(isNull(sourceItems.embedding), ne(sourceItems.embeddingModel, ctx.llm.embeddingModel)),
       ),
     )
+  const chunks: (typeof rows)[] = []
+  for (let start = 0; start < rows.length; start += EMBED_BATCH) chunks.push(rows.slice(start, start + EMBED_BATCH))
   // Saved chunk by chunk, so a spend stop keeps what was already paid for.
-  for (let start = 0; start < rows.length; start += EMBED_BATCH) {
-    const chunk = rows.slice(start, start + EMBED_BATCH)
+  await mapLimit(chunks, MODEL_CONCURRENCY, async (chunk) => {
     let vectors: number[][]
     try {
       vectors = await ctx.llm.embed(chunk.map(itemEmbeddingText))
     } catch (err) {
       if (!isBatchFailure(err)) throw err
       noteLlmFailure(ctx.notes, 'embed', err)
-      continue
+      return
     }
     for (const [i, row] of chunk.entries()) {
       await ctx.db
@@ -38,6 +41,6 @@ export async function embed(ctx: StageContext): Promise<number> {
         .set({ embedding: vectors[i], embeddingModel: ctx.llm.embeddingModel })
         .where(eq(sourceItems.id, row.id))
     }
-  }
+  })
   return rows.length
 }

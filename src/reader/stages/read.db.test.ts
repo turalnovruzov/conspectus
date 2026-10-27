@@ -1,7 +1,10 @@
 import { readFileSync } from 'node:fs'
 import { eq } from 'drizzle-orm'
 import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest'
-import { sourceItems } from '../../db/schema'
+import { llmCalls, sourceItems } from '../../db/schema'
+import { FakeLlm } from '../fake-llm'
+import { dbSink } from '../ledger-sink'
+import { SpendCeilingError, SpendLedger } from '../spend'
 import { newContext, resetTables, throwawayDb } from '../test-helpers'
 import { read } from './read'
 
@@ -70,5 +73,33 @@ describe('read', () => {
     const [row] = await db.select().from(sourceItems).where(eq(sourceItems.id, item.id))
     expect({ state: row.state, extraction: row.extraction }).toEqual({ state: 'new', extraction: null })
     expect(ctx.notes.llmFailures).toHaveLength(1)
+  })
+
+  it('reads batches concurrently, and concurrent calls never pass the ceiling', async () => {
+    for (let n = 0; n < 160; n++) await rawItem('bbc', `https://www.bbc.com/news/c${n}`, `Item ${n}`)
+    const ledger = new SpendLedger({ ceilingUsd: 0.025, pricing: {} })
+    const llm = new FakeLlm({ ledger, costPerCall: 0.01, delayMs: 30 })
+    llm.fallback('read', (req: { user: string }) => ({ items: [...req.user.matchAll(/^\[(\d+)\]/gm)].map(([, i]) => entry(Number(i), {})) }))
+    const ctx = await newContext(db, now, llm)
+    ledger.setSink(dbSink(db, ctx.runId))
+    await expect(read(ctx)).rejects.toBeInstanceOf(SpendCeilingError)
+    expect(llm.maxInFlight).toBe(2)
+    expect(llm.callsFor('read')).toHaveLength(2)
+    expect(ledger.spentUsd).toBeLessThanOrEqual(0.025)
+    // Both calls that started were recorded and saved before the stop surfaced.
+    expect(await db.$count(llmCalls, eq(llmCalls.runId, ctx.runId))).toBe(2)
+    expect(await db.$count(sourceItems, eq(sourceItems.state, 'new'))).toBe(160)
+    const read40 = await db.select({ extraction: sourceItems.extraction }).from(sourceItems)
+    expect(read40.filter((r) => r.extraction !== null)).toHaveLength(40)
+  })
+
+  it('runs up to four read batches at once', async () => {
+    for (let n = 0; n < 160; n++) await rawItem('bbc', `https://www.bbc.com/news/d${n}`, `Item ${n}`)
+    const llm = new FakeLlm({ delayMs: 20 })
+    llm.fallback('read', (req: { user: string }) => ({ items: [...req.user.matchAll(/^\[(\d+)\]/gm)].map(([, i]) => entry(Number(i), {})) }))
+    const ctx = await newContext(db, now, llm)
+    expect(await read(ctx)).toBe(160)
+    expect(llm.callsFor('read')).toHaveLength(8)
+    expect(llm.maxInFlight).toBe(4)
   })
 })

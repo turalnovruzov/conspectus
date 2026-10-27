@@ -277,6 +277,7 @@ export async function cluster(ctx: StageContext, options: { maxItems?: number } 
 
   let placed = 0
   let unsure = 0
+  // One batch at a time, never concurrently: a batch's candidates must include the situations and events the batches before it opened.
   for (let start = 0; start < items.length; start += JUDGE_BATCH) {
     const batch = items.slice(start, start + JUDGE_BATCH)
     const situationHandles = new Map<string, string>()
