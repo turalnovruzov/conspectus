@@ -34,7 +34,9 @@
     "next.config.ts",
     "playwright.config.ts",
     ".next/types/**/*.ts",
-    ".next/dev/types/**/*.ts"
+    ".next/dev/types/**/*.ts",
+    "scripts",
+    "drizzle.config.ts"
   ],
   "exclude": [
     "node_modules"
