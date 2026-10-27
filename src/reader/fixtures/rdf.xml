@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://purl.org/rss/1.0/" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel rdf:about="https://www.example-wave.test/">
+    <title>Example Wave</title>
+    <link>https://www.example-wave.test/</link>
+  </channel>
+  <item rdf:about="https://www.example-wave.test/en/item-one/a-1">
+    <title>A new port opens</title>
+    <link>https://www.example-wave.test/en/item-one/a-1</link>
+    <description>The port opens to ships &amp; trade.</description>
+    <dc:date>2026-10-26T09:30:00Z</dc:date>
+  </item>
+  <item rdf:about="https://www.example-wave.test/en/item-two/a-2">
+    <title>Drought declared</title>
+    <link>https://www.example-wave.test/en/item-two/a-2</link>
+    <description>Officials declare a drought.</description>
+    <dc:date>2026-10-25T18:00:00Z</dc:date>
+  </item>
+</rdf:RDF>

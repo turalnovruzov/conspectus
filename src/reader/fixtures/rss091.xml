@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="0.91">
+  <channel>
+    <title>Exemplo Mundo</title>
+    <link>https://redir.exemplo.test/redir/online/mundo/rss091/*https://www1.exemplo.test/mundo/</link>
+    <item>
+      <title>Eleição no país vizinho</title>
+      <link>https://redir.exemplo.test/redir/online/mundo/rss091/*https://www1.exemplo.test/mundo/2026/10/eleicao.shtml</link>
+      <description>Os cidadãos votam &lt;a href="x"&gt;hoje&lt;/a&gt;.</description>
+      <pubDate>26 Oct 2026 12:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>Cúpula termina sem acordo</title>
+      <link>https://www1.exemplo.test/mundo/2026/10/cupula.shtml</link>
+      <description>Sem acordo.</description>
+    </item>
+  </channel>
+</rss>
