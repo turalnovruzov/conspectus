@@ -16,7 +16,6 @@
     "start": "next start",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "node scripts/migrate.ts",
-    "db:seed-sample": "node scripts/seed-sample.ts",
     "db:test:up": "node scripts/test-db.ts up",
     "db:test:down": "node scripts/test-db.ts down",
     "test:db": "node scripts/test-db.ts prepare && vitest run --project db",

@@ -1,8 +1,7 @@
 import { execFileSync } from 'node:child_process'
-import { readFileSync } from 'node:fs'
 import pg from 'pg'
 import { createDb } from '../src/db/client.ts'
-import { seedSample } from '../src/db/seed-sample.ts'
+import { seedLiveFixture } from '../src/db/live-fixture.ts'
 import { assertThrowawayUrl, resetDatabase, testDatabaseUrl } from '../src/db/throwaway.ts'
 
 const CONTAINER = 'conspectus-pg-test'
@@ -51,10 +50,9 @@ if (command === 'up') {
   await up()
   await resetDatabase(url)
   if (flags.includes('--seed')) {
-    const raw = JSON.parse(readFileSync(new URL('../src/data/sample-situations.json', import.meta.url), 'utf8'))
     const { db, pool } = createDb(url)
     try {
-      await seedSample(db, raw)
+      await seedLiveFixture(db)
     } finally {
       await pool.end()
     }

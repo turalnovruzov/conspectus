@@ -4,6 +4,7 @@ import tokensCss from './design/tokens.css?raw'
 import appSrc from './App.tsx?raw'
 import mapSrc from './WorldMap.tsx?raw'
 import listSrc from './SituationList.tsx?raw'
+import sourcesSrc from './Sources.tsx?raw'
 import layoutSrc from './app/layout.tsx?raw'
 import pageSrc from './app/page.tsx?raw'
 import guidePageSrc from './app/style-guide/page.tsx?raw'
@@ -12,13 +13,14 @@ const tsx = {
   'App.tsx': appSrc,
   'WorldMap.tsx': mapSrc,
   'SituationList.tsx': listSrc,
+  'Sources.tsx': sourcesSrc,
   'layout.tsx': layoutSrc,
   'page.tsx': pageSrc,
 }
 const sources = { 'styles.css': stylesCss, ...tsx }
 
 describe('app uses the design system', () => {
-  it('reads all four sources and styles.css uses tokens', () => {
+  it('reads every source and styles.css uses tokens', () => {
     for (const [name, src] of Object.entries(sources)) expect(src.length, name).toBeGreaterThan(0)
     expect(stylesCss.match(/var\(--/g)?.length ?? 0).toBeGreaterThanOrEqual(10)
   })
@@ -67,7 +69,7 @@ describe('app uses the design system', () => {
   })
 
   it('the map page reads from the database', () => {
-    expect(pageSrc).toContain('loadSituations')
+    expect(pageSrc).toContain('loadLiveView')
     expect(pageSrc).toContain('force-dynamic')
     expect(pageSrc).not.toContain('sample-situations.json')
   })

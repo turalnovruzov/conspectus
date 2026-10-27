@@ -11,6 +11,8 @@ export interface LiveInvolvement {
 }
 
 export interface LiveSource {
+  outletId: string
+  format: string
   outletName: string
   ownerType: string
   region: string
@@ -105,9 +107,10 @@ export async function loadLiveView(db: Db): Promise<LiveView> {
       itemId: sourceItems.id,
       outletId: outlets.id,
       outletName: outlets.name,
+      format: outlets.format,
       ownerType: outlets.ownerType,
       region: outlets.region,
-      publishedAt: sql<Date | null>`coalesce(${sourceItems.publishedAt}, ${sourceItems.fetchedAt})`.mapWith((v) => (v ? new Date(v) : null)),
+      publishedAt: sourceItems.publishedAt,
       headline: sourceItems.headline,
       url: sourceItems.url,
     })
@@ -139,8 +142,8 @@ export async function loadLiveView(db: Db): Promise<LiveView> {
         involved: involvementRows
           .filter((i) => i.situationId === s.id)
           .map((i) => ({ countryKey: i.countryKey, role: i.role, entry: i.entry, joinedOn: i.joinedOn, leftOn: i.leftOn })),
-        sources: sources.map(({ outletName, ownerType, region, publishedAt, headline, url }) => ({
-          outletName, ownerType, region, publishedAt, headline, url,
+        sources: sources.map(({ outletId, format, outletName, ownerType, region, publishedAt, headline, url }) => ({
+          outletId, format, outletName, ownerType, region, publishedAt, headline, url,
         })),
         outletCount: distinct.size,
         regionCount: new Set([...distinct.values()].map((r) => r.region)).size,

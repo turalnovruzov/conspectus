@@ -49,3 +49,10 @@ Each entry is: **Rule** → **Why** → **Minimal example** → **Gotcha**. Entr
 - **Why:** speed without passing the spend ceiling or racing writes.
 - **Example:** `const inTurn = serial(); await mapLimit(batches, MODEL_CONCURRENCY, async (b) => { const out = await ctx.llm.chatJson(...); await inTurn(() => applyBatch(ctx, p, out)) })`
 - **Gotcha:** a check-then-increment on shared state stays in one synchronous step with no `await` between (see the article-fetch cap in `read.ts`); test overlap with `FakeLlm({ delayMs })` and assert `maxInFlight`.
+
+### Server-to-client data is plain strings, formatted once on the server
+
+- **Rule:** data crossing from the server page to client components is plain strings, formatted once on the server in UTC with fixed month names; never pass a `Date` and never call `toLocale*`.
+- **Why:** the server and the browser print the same text, so hydration cannot mismatch.
+- **Example:** `formatDay(d)` in `src/situations.ts`.
+- **Gotcha:** a nullable date from the database must stay `null` up to the formatter; never fill it in with another date (such as the fetch time) on the way.
