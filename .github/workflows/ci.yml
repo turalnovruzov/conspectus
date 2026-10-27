@@ -8,6 +8,19 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: pgvector/pgvector:pg18
+        env:
+          POSTGRES_USER: conspectus
+          POSTGRES_PASSWORD: conspectus
+          POSTGRES_DB: conspectus_test
+        ports: ['5518:5432']
+        options: >-
+          --health-cmd "pg_isready -U conspectus"
+          --health-interval 2s
+          --health-timeout 5s
+          --health-retries 30
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7

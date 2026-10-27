@@ -10,7 +10,7 @@ Issue #3 asks for a design system. Tural chose the "E · Night side" board: Swis
 ## Decision
 
 - Tokens are CSS custom properties in `src/design/tokens.css`; components are plain CSS classes in `src/design/components.css`.
-- The style guide is a static page, `style-guide.html`, built as a second Vite entry.
+- The style guide is a static page, `style-guide.html`, built as a second Vite entry (until ADR 0003; now a Next page).
 - Inter and JetBrains Mono are committed as woff2 files under the SIL Open Font License, each with its licence. Where each file came from is recorded in `src/design/fonts/SOURCES.md`.
 - The tests ride Vitest and Playwright from [ADR 0001](./0001-frontend-stack-react-vite-typescript-d3-geo.md); no new dependency.
 

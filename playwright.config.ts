@@ -1,4 +1,5 @@
 import { defineConfig, devices } from '@playwright/test'
+import { testDatabaseUrl } from './src/db/throwaway'
 
 export default defineConfig({
   testDir: 'e2e',
@@ -6,8 +7,10 @@ export default defineConfig({
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
   use: { baseURL: 'http://localhost:4173' },
   webServer: {
-    command: 'npm run build && npm run preview -- --port 4173 --strictPort',
+    command: 'node scripts/test-db.ts prepare --seed && npm run build && npm run start -- --port 4173',
     url: 'http://localhost:4173',
     reuseExistingServer: false,
+    env: { DATABASE_URL: testDatabaseUrl(), CONSPECTUS_ENV_FILE: '/nonexistent/conspectus.env' },
+    timeout: 180_000,
   },
 })

@@ -126,13 +126,13 @@ A side project: a web page with an interactive world map (maybe with a graph vie
 
 ### Test command
 
-`npm test` (typecheck, Vitest unit, Playwright end-to-end; first run `npx playwright install chromium`)
+`npm test` (typecheck, Vitest unit, Vitest database, Playwright end-to-end; first run `npx playwright install chromium`). Needs Docker locally: it starts a throwaway `conspectus-pg-test` on port 5518; CI uses a service container.
 
 CI: `.github/workflows/ci.yml` runs it on every PR and on `main`.
 
 ### How to run and try it
 
-A web app, run from its dev script once one exists.
+A web app: `npm run dev`, with the database from `DATABASE_URL` in `~/.config/conspectus/.env`; `npm run db:migrate` applies the migrations.
 
 Looked at in a browser, driven by a browser tool.
 
@@ -150,7 +150,7 @@ No deploy stage.
 
 ### Stack
 
-React + Vite + TypeScript, `d3-geo` for the map, Vitest and Playwright; design tokens in plain CSS (ADR 0002); frontend only. Recorded in `docs/stack.md` and ADR 0001.
+React + Next.js + TypeScript, frontend and backend together; Postgres + pgvector via Drizzle; `d3-geo` for the map; Vitest and Playwright; design tokens in plain CSS (ADR 0002). Recorded in `docs/stack.md` and ADRs 0001, 0003, 0004.
 
 ### Design system
 

@@ -1,12 +1,11 @@
+'use client'
+
 import { useState } from 'react'
-import sample from './data/sample-situations.json'
 import SituationList from './SituationList'
 import WorldMap from './WorldMap'
-import { countryFills, parseSituations, situationsForCountry } from './situations'
+import { countryFills, situationsForCountry, type Situation } from './situations'
 
-const situations = parseSituations(sample)
-
-export default function App() {
+export default function App({ situations }: { situations: Situation[] }) {
   const [selectedSituationId, setSelectedSituationId] = useState<string | null>(null)
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null)
 

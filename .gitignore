@@ -17,3 +17,9 @@ node_modules/
 dist/
 test-results/
 playwright-report/
+
+# next
+.next/
+next-env.d.ts
+*.tsbuildinfo
+AGENTS.md

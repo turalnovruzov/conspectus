@@ -4,9 +4,17 @@ import tokensCss from './design/tokens.css?raw'
 import appSrc from './App.tsx?raw'
 import mapSrc from './WorldMap.tsx?raw'
 import listSrc from './SituationList.tsx?raw'
-import mainSrc from './main.tsx?raw'
+import layoutSrc from './app/layout.tsx?raw'
+import pageSrc from './app/page.tsx?raw'
+import guidePageSrc from './app/style-guide/page.tsx?raw'
 
-const tsx = { 'App.tsx': appSrc, 'WorldMap.tsx': mapSrc, 'SituationList.tsx': listSrc }
+const tsx = {
+  'App.tsx': appSrc,
+  'WorldMap.tsx': mapSrc,
+  'SituationList.tsx': listSrc,
+  'layout.tsx': layoutSrc,
+  'page.tsx': pageSrc,
+}
 const sources = { 'styles.css': stylesCss, ...tsx }
 
 describe('app uses the design system', () => {
@@ -40,11 +48,27 @@ describe('app uses the design system', () => {
     expect(stylesCss).not.toMatch(/:root\s*\{/)
   })
 
-  it('imports the design CSS before styles.css', () => {
-    const at = (file: string) => mainSrc.indexOf(file)
+  it('layout imports the design CSS in order', () => {
+    const at = (file: string) => layoutSrc.indexOf(file)
     for (const f of ['fonts.css', 'tokens.css', 'components.css']) expect(at(f), f).toBeGreaterThan(-1)
     expect(at('fonts.css')).toBeLessThan(at('tokens.css'))
     expect(at('tokens.css')).toBeLessThan(at('components.css'))
-    expect(at('components.css')).toBeLessThan(at("'./styles.css'"))
+  })
+
+  it('layout imports no page CSS', () => {
+    expect(layoutSrc).not.toContain('styles.css')
+    expect(layoutSrc).not.toContain('style-guide.css')
+  })
+
+  it('the map page imports styles.css, the style guide page does not', () => {
+    expect(pageSrc).toContain("'../styles.css'")
+    expect(guidePageSrc).toContain('style-guide.css')
+    expect(guidePageSrc).not.toContain('styles.css')
+  })
+
+  it('the map page reads from the database', () => {
+    expect(pageSrc).toContain('loadSituations')
+    expect(pageSrc).toContain('force-dynamic')
+    expect(pageSrc).not.toContain('sample-situations.json')
   })
 })
