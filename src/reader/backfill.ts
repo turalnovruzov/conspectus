@@ -24,13 +24,16 @@ export function backfillDays(today: Date, days: number): Date[] {
 
 export const endOfDay = (day: Date) => new Date(day.getTime() + DAY_MS - 1000)
 
-/** Splits one fetch of the feeds into per-day outcomes by publication date; undated items cannot be placed in a past day. */
+/**
+ * Splits one fetch of the feeds into per-day outcomes by publication date; undated items cannot be placed
+ * in a past day. A failed fetch shows, with its error, on every day, since every day lost it.
+ */
 export function sliceByDay(feeds: FetchOutcome[], wikipedia: WikipediaDay[], days: Date[]): Map<string, FetchOutcome[]> {
   const out = new Map<string, FetchOutcome[]>(days.map((d) => [isoDay(d), []]))
   for (const outcome of feeds) {
     for (const day of days) {
       const items = outcome.items.filter((i) => i.publishedAt && isoDay(i.publishedAt) === isoDay(day))
-      out.get(isoDay(day))!.push({ ...outcome, items, error: day === days[0] ? outcome.error : null })
+      out.get(isoDay(day))!.push({ ...outcome, items })
     }
   }
   for (const { day, outcome } of wikipedia) out.get(isoDay(day))?.push(outcome)
@@ -72,6 +75,7 @@ export interface BackfillOptions {
   feeds: FetchOutcome[]
   wikipedia: WikipediaDay[]
   force?: boolean
+  /** Read once before the first day; every day's run carries it, as the key is not read between days. */
   keyBefore?: KeyInfo | null
 }
 
@@ -91,7 +95,7 @@ export async function backfill(o: BackfillOptions): Promise<RunResult[]> {
     results.push(
       await runOnce({
         db: o.db, llm: o.makeLlm(ledger), ledger, now: endOfDay(day), kind: 'backfill', simDay: day,
-        sources: staticSources(sliced.get(isoDay(day))!), windowHours: null, keyBefore: i === 0 ? o.keyBefore : null,
+        sources: staticSources(sliced.get(isoDay(day))!), windowHours: null, keyBefore: o.keyBefore,
       }),
     )
   }

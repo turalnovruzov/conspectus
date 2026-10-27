@@ -117,7 +117,7 @@ export function formatReport(run: { id: string; kind: string; simDay: string | n
   const row = (label: string, value: string | number) => lines.push(`${label.padEnd(26)} ${value}`)
   lines.push(`run ${run.id} · ${run.kind}${run.simDay ? ` · day ${run.simDay}` : ''} · ${run.status}`)
   row('spend this run (USD)', `${Number(run.spentUsd).toFixed(6)} of ceiling ${Number(run.ceilingUsd).toFixed(4)}`)
-  row('key usage before / after', `${r.spend.keyBefore ?? '?'} / ${r.spend.keyAfter ?? '?'}`)
+  row(run.kind === 'backfill' ? 'key usage, whole backfill' : 'key usage before / after', `${r.spend.keyBefore ?? '?'} / ${r.spend.keyAfter ?? '?'}`)
   row('situations opened', r.situationsOpened)
   row('situations ended', r.situationsEnded)
   row('merged this run', r.mergedThisRun)

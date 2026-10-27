@@ -40,6 +40,12 @@ describe('buildReport', () => {
     expect(text).toContain('read · transport: read: terminated (after one retry)')
   })
 
+  it('labels a backfill day\'s key usage as the whole backfill\'s', async () => {
+    const [run] = await db.insert(runs).values({ kind: 'backfill', ceilingUsd: '1', keyBefore: { usage: 0.25 }, keyAfter: { usage: 0.36 } }).returning()
+    const text = formatReport({ ...run, status: 'ok' }, await buildReport(db, run.id, newNotes()))
+    expect(text).toMatch(/key usage, whole backfill\s+0\.25 \/ 0\.36/)
+  })
+
   it('reduces hosts to their registrable domain', () => {
     expect(registrableDomain('www.reuters.com')).toBe('reuters.com')
     expect(registrableDomain('news.example.co.uk')).toBe('example.co.uk')

@@ -36,6 +36,17 @@ describe('backfill', () => {
     ])
   })
 
+  it('gives every day\'s run the key reading taken before the first day', async () => {
+    const totalLedger = new SpendLedger({ ceilingUsd: 1, pricing: {} })
+    await backfill({
+      db, today, days: 3, totalLedger, wikipedia: [], keyBefore: { usage: 0.25, limit: 10, limit_remaining: 9.75 },
+      feeds: feeds({ '2026-10-24': ['Floods begin'] }),
+      makeLlm: (ledger) => scriptedLlm({ ledger }),
+    })
+    const rows = await db.select().from(runs).orderBy(asc(runs.startedAt))
+    expect(rows.map((r) => (r.keyBefore as { usage: number } | null)?.usage)).toEqual([0.25, 0.25, 0.25])
+  })
+
   it('refuses after a live run unless forced', async () => {
     await db.insert(runs).values({ kind: 'live', ceilingUsd: '1' })
     const options = { db, today, days: 1, totalLedger: new SpendLedger({ ceilingUsd: 1, pricing: {} }), wikipedia: [], feeds: [], makeLlm: () => scriptedLlm() }

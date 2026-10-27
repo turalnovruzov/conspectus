@@ -132,7 +132,7 @@ try {
         db, today, days, totalLedger, feeds, wikipedia, force: values.force, keyBefore,
         makeLlm: (ledger) => createOpenRouterLlm({ apiKey: key, ...models(), ledger, referer: REPO_URL }),
       })
-      await finishKey([results.at(-1)!.runId], key)
+      await finishKey(results.map((r) => r.runId), key)
       for (const r of results) {
         await printRun(r.runId)
         console.log('')
