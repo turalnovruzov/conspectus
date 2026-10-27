@@ -28,3 +28,10 @@ Each entry is: **Rule** → **Why** → **Minimal example** → **Gotcha**. Entr
 - **Why:** the production build splits `src/design/components.css` into a chunk that loads after the app's CSS, while dev loads it before, so source order differs between dev and prod.
 - **Example:** `.land.country-selected { stroke: var(--color-text); }`
 - **Gotcha:** it looks fine in `npm run dev`; check computed styles on the production build (`next build && next start`), which the e2e suite does.
+
+### Database tests are `*.db.test.ts` and only touch the throwaway database
+
+- **Rule:** tests that need the database are named `*.db.test.ts`; they run in Vitest's `db` project only against `testDatabaseUrl()`, and are never skipped.
+- **Why:** Tural's real database must never be reachable from a test.
+- **Example:** `const { db, pool } = createDb(testDatabaseUrl())`
+- **Gotcha:** files under `scripts/`, `src/db/` and `src/env.ts` import local files with the `.ts` extension and use no `enum`, because `node scripts/x.ts` runs them through Node's type stripping.
