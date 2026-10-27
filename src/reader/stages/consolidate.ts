@@ -1,9 +1,9 @@
 import { and, eq, isNull, sql } from 'drizzle-orm'
 import { eventItems, involvements, situationEvents, situations, sourceItems } from '../../db/schema.ts'
 import { CONSOLIDATE_EVERY_HOURS, CONSOLIDATE_RECENT_HOURS, DUP_COSINE } from '../config.ts'
-import type { StageContext } from '../context.ts'
+import { type StageContext, noteLlmFailure } from '../context.ts'
 import { countryNameOf } from '../countries.ts'
-import { LlmOutputError } from '../llm.ts'
+import { isBatchFailure } from '../llm.ts'
 import { CONSOLIDATE_SYSTEM, type PairSide, consolidateSchema, consolidateUser } from '../prompts/consolidate.ts'
 import { versionSituation } from '../versions.ts'
 import { markPass, passRanSince } from './markers.ts'
@@ -48,8 +48,8 @@ export async function consolidate(ctx: StageContext): Promise<{ ran: boolean; me
       user: consolidateUser(described), maxTokens: 60 * pairs.length + 100,
     })
   } catch (err) {
-    if (err instanceof LlmOutputError) {
-      ctx.notes.llmFailures.push({ stage: 'consolidate', message: err.message })
+    if (isBatchFailure(err)) {
+      noteLlmFailure(ctx.notes, 'consolidate', err)
       return { ran: true, merged: 0 }
     }
     throw err

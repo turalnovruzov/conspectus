@@ -1,9 +1,9 @@
 import { and, desc, eq, inArray, isNull, sql } from 'drizzle-orm'
 import { categories, eventItems, events, outlets, situationEvents, situations, sourceItems } from '../../db/schema.ts'
 import { CATEGORY_CANDIDATES, SUMMARIZE_BATCH } from '../config.ts'
-import { type StageContext, isoDay } from '../context.ts'
+import { type StageContext, isoDay, noteLlmFailure } from '../context.ts'
 import { countryNameOf } from '../countries.ts'
-import { LlmOutputError } from '../llm.ts'
+import { isBatchFailure } from '../llm.ts'
 import type { Extraction } from '../prompts/read.ts'
 import { SUMMARIZE_SYSTEM, type SummarizeOutput, type SummarizeSituation, summarizeSchema, summarizeUser } from '../prompts/summarize.ts'
 import { versionEvent, versionSituation } from '../versions.ts'
@@ -96,8 +96,8 @@ export async function summarize(ctx: StageContext): Promise<number> {
         user: summarizeUser(categoryList, situationInputs), maxTokens: 450 * rows.length + 200,
       })
     } catch (err) {
-      if (err instanceof LlmOutputError) {
-        ctx.notes.llmFailures.push({ stage: 'summarize', message: err.message })
+      if (isBatchFailure(err)) {
+        noteLlmFailure(ctx.notes, 'summarize', err)
         continue
       }
       throw err
@@ -136,7 +136,15 @@ export async function summarize(ctx: StageContext): Promise<number> {
       done++
     }
     if (embedTexts.length > 0) {
-      const vectors = await ctx.llm.embed(embedTexts.map((e) => e.text))
+      let vectors: number[][]
+      try {
+        vectors = await ctx.llm.embed(embedTexts.map((e) => e.text))
+      } catch (err) {
+        if (!isBatchFailure(err)) throw err
+        // The situations keep their previous embedding until their next summary.
+        noteLlmFailure(ctx.notes, 'summarize_embed', err)
+        continue
+      }
       for (const [i, e] of embedTexts.entries()) {
         await ctx.db
           .update(situations)
@@ -165,10 +173,17 @@ async function chooseCategory(
     .where(sql`lower(${categories.name}) = lower(${name})`)
   if (existing) return resolveMerged(existing.id, byId)
   const parentId = choice.parent ? (byHandle.get(choice.parent.trim()) ?? null) : null
-  const [vector] = await ctx.llm.embed([`${name}: ${definition}`])
+  let vectors: number[][]
+  try {
+    vectors = await ctx.llm.embed([`${name}: ${definition}`])
+  } catch (err) {
+    if (!isBatchFailure(err)) throw err
+    noteLlmFailure(ctx.notes, 'category_embed', err)
+    return null
+  }
   const [created] = await ctx.db
     .insert(categories)
-    .values({ name, definition, parentId: resolveMerged(parentId, byId), embedding: vector, embeddingModel: ctx.llm.embeddingModel })
+    .values({ name, definition, parentId: resolveMerged(parentId, byId), embedding: vectors[0], embeddingModel: ctx.llm.embeddingModel })
     .returning()
   byId.set(created.id, { id: created.id, name: created.name, definition: created.definition, parentId: created.parentId, mergedIntoId: null })
   return created.id

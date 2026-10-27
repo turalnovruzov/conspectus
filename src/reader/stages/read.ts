@@ -1,10 +1,10 @@
 import { and, asc, eq, isNull, sql } from 'drizzle-orm'
 import { outlets, sourceItems } from '../../db/schema.ts'
 import { MAX_ARTICLE_FETCHES_PER_RUN, READ_BATCH } from '../config.ts'
-import { type StageContext, noteUnknownRole } from '../context.ts'
+import { type StageContext, noteUnknownRole, noteLlmFailure } from '../context.ts'
 import { fetchArticle } from '../fetch/article.ts'
 import type { FetchFn } from '../http.ts'
-import { LlmOutputError } from '../llm.ts'
+import { isBatchFailure } from '../llm.ts'
 import { OUTLETS } from '../outlets.ts'
 import { type Extraction, READ_SYSTEM, type ReadInput, readSchemaFor, readUser } from '../prompts/read.ts'
 
@@ -37,8 +37,8 @@ async function readBatch(ctx: StageContext, inputs: ReadInput[]): Promise<Map<nu
     })
     return new Map(out.items.map((e) => [e.i, e]))
   } catch (err) {
-    if (err instanceof LlmOutputError) {
-      ctx.notes.llmFailures.push({ stage: 'read', message: err.message })
+    if (isBatchFailure(err)) {
+      noteLlmFailure(ctx.notes, 'read', err)
       return null
     }
     throw err

@@ -1,8 +1,8 @@
 import { eq, isNull, sql } from 'drizzle-orm'
 import { categories, situations } from '../../db/schema.ts'
 import { CATEGORY_DUP_COSINE, CATEGORY_MERGE_EVERY_DAYS, CATEGORY_MERGE_MIN } from '../config.ts'
-import { type StageContext, daysBefore } from '../context.ts'
-import { LlmOutputError } from '../llm.ts'
+import { type StageContext, daysBefore, noteLlmFailure } from '../context.ts'
+import { isBatchFailure } from '../llm.ts'
 import { CATEGORY_MERGE_SYSTEM, categoryMergeSchema, categoryMergeUser } from '../prompts/category-merge.ts'
 import { versionSituation } from '../versions.ts'
 import { allCategories, pathOf } from './categories.ts'
@@ -38,8 +38,8 @@ export async function categoryMerge(ctx: StageContext): Promise<{ ran: boolean; 
       user: categoryMergeUser(pairs), maxTokens: 40 * pairs.length + 100,
     })
   } catch (err) {
-    if (err instanceof LlmOutputError) {
-      ctx.notes.llmFailures.push({ stage: 'category_merge', message: err.message })
+    if (isBatchFailure(err)) {
+      noteLlmFailure(ctx.notes, 'category_merge', err)
       return { ran: true, merged: 0 }
     }
     throw err

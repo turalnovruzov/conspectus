@@ -1,5 +1,5 @@
 import type { Db } from '../db/client.ts'
-import type { Llm } from './llm.ts'
+import { type Llm, LlmTransportError } from './llm.ts'
 
 export type Tx = Parameters<Parameters<Db['transaction']>[0]>[0]
 export type DbOrTx = Db | Tx
@@ -16,7 +16,8 @@ export interface RunNotes {
   unknownRoles: Record<string, number>
   /** role_changed answers ignored because their evidence is not a quote from the item. */
   roleChangesUnsupported: number
-  llmFailures: { stage: string; message: string }[]
+  /** Batches lost this run; their rows stay as they were for the next run. */
+  llmFailures: { stage: string; kind: 'output' | 'transport'; message: string }[]
   articleFetches: number
   stagesSkipped: string[]
 }
@@ -26,6 +27,10 @@ export function noteUnknownRole(notes: RunNotes): (word: string) => void {
     const key = word.trim() || '(empty)'
     notes.unknownRoles[key] = (notes.unknownRoles[key] ?? 0) + 1
   }
+}
+
+export function noteLlmFailure(notes: RunNotes, stage: string, err: Error): void {
+  notes.llmFailures.push({ stage, kind: err instanceof LlmTransportError ? 'transport' : 'output', message: err.message })
 }
 
 export function newNotes(): RunNotes {

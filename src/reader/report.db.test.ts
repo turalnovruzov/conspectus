@@ -1,7 +1,7 @@
 import { afterAll, beforeEach, describe, expect, it } from 'vitest'
 import { runs, sourceItems } from '../db/schema'
 import { newNotes } from './context'
-import { buildReport, registrableDomain } from './report'
+import { buildReport, formatReport, registrableDomain } from './report'
 import { resetTables, throwawayDb } from './test-helpers'
 
 const { db, pool } = throwawayDb()
@@ -21,12 +21,23 @@ describe('buildReport', () => {
     notes.merged.add('e')
     const report = await buildReport(db, run.id, notes)
     expect(report.duplicateRate).toBe(0.25)
-    for (const key of ['unsure', 'situationsOpened', 'situationsEnded', 'mergedThisRun', 'duplicateRate', 'oneOffShare', 'categoriesPer100', 'onMap', 'llmFailures'] as const) {
+    for (const key of ['unsure', 'situationsOpened', 'situationsEnded', 'mergedThisRun', 'duplicateRate', 'oneOffShare', 'categoriesPer100', 'onMap', 'llmFailures', 'transportFailures'] as const) {
       expect(typeof report[key], key).toBe('number')
     }
     expect(report.skipped).toEqual({ sport: 1 })
     expect(report.spend).toEqual({ run: 0, keyBefore: 1.5, keyAfter: 1.75 })
     expect(report.suggestedOutlets).toEqual([{ domain: 'example-wire.test', count: 1 }])
+  })
+
+  it('prints each lost batch with its stage and kind', async () => {
+    const [run] = await db.insert(runs).values({ kind: 'live', ceilingUsd: '1' }).returning()
+    const notes = newNotes()
+    notes.llmFailures.push({ stage: 'read', kind: 'transport', message: 'read: terminated (after one retry)' })
+    const report = await buildReport(db, run.id, notes)
+    expect(report.transportFailures).toBe(1)
+    const text = formatReport({ ...run, status: 'ok' }, report)
+    expect(text).toMatch(/batches lost to transport\s+1/)
+    expect(text).toContain('read · transport: read: terminated (after one retry)')
   })
 
   it('reduces hosts to their registrable domain', () => {

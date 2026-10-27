@@ -28,8 +28,30 @@ export class LlmOutputError extends Error {
   }
 }
 
+/** The connection to OpenRouter failed twice (dropped, reset, timed out, or a 5xx); the batch is lost for this run only. */
+export class LlmTransportError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'LlmTransportError'
+  }
+}
+
+/** A failure that costs one batch, never the run: the stage notes it and leaves the batch's rows for the next run. */
+export function isBatchFailure(err: unknown): err is LlmOutputError | LlmTransportError {
+  return err instanceof LlmOutputError || err instanceof LlmTransportError
+}
+
+export function isTransportError(err: unknown): boolean {
+  if (err instanceof LlmOutputError || err instanceof LlmTransportError) return false
+  if (err instanceof OpenAI.APIConnectionError) return true
+  const status = (err as { status?: unknown } | null)?.status
+  if (typeof status === 'number') return status >= 500
+  return /terminated|ECONNRESET|ECONNREFUSED|ETIMEDOUT|EPIPE|EAI_AGAIN|fetch failed|socket hang up|other side closed|UND_ERR/i.test(messageOf(err))
+}
+
 export const EMBED_BATCH = 64
 const ATTEMPTS = 2
+const TRANSPORT_RETRY_DELAY_MS = 3000
 
 interface OpenRouterUsage {
   prompt_tokens?: number
@@ -58,6 +80,8 @@ export function createOpenRouterLlm(options: {
   ledger: SpendLedger
   fetchFn?: FetchFn
   referer: string
+  /** Wait before the one retry of a transport failure. */
+  transportRetryDelayMs?: number
 }): Llm {
   const { apiKey, chatModel, embeddingModel, ledger } = options
   // Throws before any request when a model has no known price.
@@ -71,6 +95,23 @@ export function createOpenRouterLlm(options: {
     defaultHeaders: { 'HTTP-Referer': options.referer, 'X-Title': 'Conspectus' },
   })
   let structured = true
+  const retryDelayMs = options.transportRetryDelayMs ?? TRANSPORT_RETRY_DELAY_MS
+
+  // The SDK's own retries cover a failed connect, but not a body that breaks off mid-read ("terminated").
+  async function withTransportRetry<T>(what: string, call: () => Promise<T>): Promise<T> {
+    try {
+      return await call()
+    } catch (err) {
+      if (!isTransportError(err)) throw err
+      await new Promise((r) => setTimeout(r, retryDelayMs))
+      try {
+        return await call()
+      } catch (again) {
+        if (isTransportError(again)) throw new LlmTransportError(`${what}: ${redact(messageOf(again), apiKey)} (after one retry)`)
+        throw again
+      }
+    }
+  }
 
   async function chatOnce(req: ChatRequest<unknown>): Promise<string | null> {
     const reservation = ledger.reserve(ledger.estimateChat(chatModel, req.system.length + req.user.length, req.maxTokens))
@@ -105,6 +146,29 @@ export function createOpenRouterLlm(options: {
         structured = false
         return chatOnce(req)
       }
+      if (isTransportError(err)) throw err
+      throw new Error(redact(messageOf(err), apiKey))
+    }
+  }
+
+  async function embedOnce(batch: string[]): Promise<number[][]> {
+    const reservation = ledger.reserve(ledger.estimateEmbed(embeddingModel, batch.reduce((n, t) => n + t.length, 0)))
+    try {
+      const res = await client.embeddings.create({ model: embeddingModel, input: batch })
+      const usage = res.usage as OpenRouterUsage | undefined
+      await ledger.record(reservation, {
+        purpose: 'embed', model: embeddingModel, ok: true,
+        promptTokens: usage?.prompt_tokens, reportedCostUsd: usage?.cost,
+        generationId: (res as { id?: string }).id ?? null,
+      })
+      const vectors = [...res.data].sort((a, b) => a.index - b.index).map((d) => d.embedding)
+      if (vectors.length !== batch.length) throw new LlmOutputError(`embed: ${vectors.length} vectors for ${batch.length} texts`)
+      return vectors
+    } catch (err) {
+      if (!reservation.settled) {
+        await ledger.record(reservation, { purpose: 'embed', model: embeddingModel, ok: false, error: redact(messageOf(err), apiKey) })
+      }
+      if (err instanceof LlmOutputError || isTransportError(err)) throw err
       throw new Error(redact(messageOf(err), apiKey))
     }
   }
@@ -115,7 +179,7 @@ export function createOpenRouterLlm(options: {
     async chatJson<T>(req: ChatRequest<T>): Promise<T> {
       let lastProblem = ''
       for (let attempt = 0; attempt < ATTEMPTS; attempt++) {
-        const content = await chatOnce(req as ChatRequest<unknown>)
+        const content = await withTransportRetry(req.purpose, () => chatOnce(req as ChatRequest<unknown>))
         if (content === null) {
           lastProblem = 'empty response'
           continue
@@ -137,25 +201,7 @@ export function createOpenRouterLlm(options: {
       const out: number[][] = []
       for (let i = 0; i < texts.length; i += EMBED_BATCH) {
         const batch = texts.slice(i, i + EMBED_BATCH)
-        const reservation = ledger.reserve(ledger.estimateEmbed(embeddingModel, batch.reduce((n, t) => n + t.length, 0)))
-        try {
-          const res = await client.embeddings.create({ model: embeddingModel, input: batch })
-          const usage = res.usage as OpenRouterUsage | undefined
-          await ledger.record(reservation, {
-            purpose: 'embed', model: embeddingModel, ok: true,
-            promptTokens: usage?.prompt_tokens, reportedCostUsd: usage?.cost,
-            generationId: (res as { id?: string }).id ?? null,
-          })
-          const vectors = [...res.data].sort((a, b) => a.index - b.index).map((d) => d.embedding)
-          if (vectors.length !== batch.length) throw new LlmOutputError(`embed: ${vectors.length} vectors for ${batch.length} texts`)
-          out.push(...vectors)
-        } catch (err) {
-          if (!reservation.settled) {
-            await ledger.record(reservation, { purpose: 'embed', model: embeddingModel, ok: false, error: redact(messageOf(err), apiKey) })
-          }
-          if (err instanceof LlmOutputError) throw err
-          throw new Error(redact(messageOf(err), apiKey))
-        }
+        out.push(...(await withTransportRetry('embed', () => embedOnce(batch))))
       }
       return out
     },

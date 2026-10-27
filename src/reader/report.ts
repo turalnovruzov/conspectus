@@ -22,7 +22,9 @@ export interface RunReport {
   unknownRoles: Record<string, number>
   roleChangesUnsupported: number
   llmFailures: number
-  llmFailureNotes: { stage: string; message: string }[]
+  /** Batches lost to a connection that failed twice; their items wait for the next run. */
+  transportFailures: number
+  llmFailureNotes: RunNotes['llmFailures']
   fetchFailures: { outletId: string; error: string | null }[]
   spend: { run: number; keyBefore: number | null; keyAfter: number | null }
   suggestedOutlets: { domain: string; count: number }[]
@@ -94,6 +96,7 @@ export async function buildReport(db: Db, runId: string, notes: RunNotes): Promi
     unknownRoles: notes.unknownRoles,
     roleChangesUnsupported: notes.roleChangesUnsupported,
     llmFailures: failedCalls + notes.llmFailures.length,
+    transportFailures: notes.llmFailures.filter((f) => f.kind === 'transport').length,
     llmFailureNotes: notes.llmFailures,
     fetchFailures: logs.filter((l) => !l.ok || l.error).map((l) => ({ outletId: l.outletId, error: l.error })),
     spend: { run: Number(run.spentUsd), keyBefore: usage(run.keyBefore), keyAfter: usage(run.keyAfter) },
@@ -124,6 +127,7 @@ export function formatReport(run: { id: string; kind: string; simDay: string | n
   row('on the map', r.onMap)
   row('items unsure', r.unsure)
   row('llm failures', r.llmFailures)
+  row('batches lost to transport', r.transportFailures ?? 0)
   row('skipped', Object.entries(r.skipped).map(([k, v]) => `${k}: ${v}`).join(', ') || '0')
   row('unmatched countries', Object.entries(r.unmatchedCountries).map(([k, v]) => `${k} ×${v}`).join(', ') || 'none')
   row('items with a non-http url', r.rejectedUrls)
@@ -133,6 +137,10 @@ export function formatReport(run: { id: string; kind: string; simDay: string | n
   lines.push('', `${'outlet'.padEnd(22)} ${'seen'.padStart(5)} ${'new'.padStart(5)} failed`)
   for (const [id, v] of Object.entries(r.itemsPerOutlet).sort()) {
     lines.push(`${id.padEnd(22)} ${String(v.seen).padStart(5)} ${String(v.new).padStart(5)} ${v.failed ? 'yes' : ''}`)
+  }
+  if ((r.llmFailureNotes ?? []).length > 0) {
+    lines.push('', 'batches lost this run (their items wait for the next run):')
+    for (const f of r.llmFailureNotes) lines.push(`  ${f.stage} · ${f.kind ?? 'output'}: ${f.message}`)
   }
   if (r.fetchFailures.length > 0) {
     lines.push('', 'fetch problems:')

@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { z } from 'zod'
-import { LlmOutputError, createOpenRouterLlm } from './llm'
+import OpenAI from 'openai'
+import { LlmOutputError, LlmTransportError, createOpenRouterLlm, isTransportError } from './llm'
 import { type CallRecord, SpendCeilingError, SpendLedger } from './spend'
 
 const KEY = 'sk-or-v1-test-secret-0123456789'
@@ -19,8 +20,14 @@ function setup(ceilingUsd: number, respond: (url: string, body: Record<string, u
   const rows: CallRecord[] = []
   const ledger = new SpendLedger({ ceilingUsd, pricing, sink: async (c) => void rows.push(c) })
   const fetchFn = vi.fn(async (url: string, init?: RequestInit) => respond(String(url), JSON.parse(String(init?.body ?? '{}'))))
-  const llm = createOpenRouterLlm({ apiKey: KEY, chatModel: 'm/chat', embeddingModel: 'm/embed', ledger, fetchFn, referer: 'https://github.com/turalnovruzov/conspectus' })
+  const llm = createOpenRouterLlm({ apiKey: KEY, chatModel: 'm/chat', embeddingModel: 'm/embed', ledger, fetchFn, referer: 'https://github.com/turalnovruzov/conspectus', transportRetryDelayMs: 0 })
   return { ledger, fetchFn, llm, rows }
+}
+
+/** A 200 whose body stream errors mid-read, as undici reports a dropped connection. */
+function brokenBody(message = 'terminated') {
+  const body = new ReadableStream({ start: (c) => c.error(new TypeError(message)) })
+  return new Response(body, { status: 200, headers: { 'content-type': 'application/json' } })
 }
 
 const req = { purpose: 'read' as const, schema, system: 'sys', user: 'user', maxTokens: 100 }
@@ -115,5 +122,55 @@ describe('createOpenRouterLlm', () => {
     const err = await llm.chatJson(req).catch((e: Error) => e)
     expect(String((err as Error).message)).not.toContain(KEY)
     expect(JSON.stringify(rows)).not.toContain(KEY)
+  })
+
+  it('retries once when the response body breaks off mid-read ("terminated"), then succeeds', async () => {
+    let n = 0
+    const { llm, fetchFn } = setup(1, () => (n++ === 0 ? brokenBody() : chatResponse('{"ok": true}')))
+    expect(await llm.chatJson(req)).toEqual({ ok: true })
+    expect(fetchFn).toHaveBeenCalledTimes(2)
+  })
+
+  it('throws LlmTransportError, without the key, when the retry breaks off too', async () => {
+    const { llm, fetchFn, rows } = setup(1, () => brokenBody(`terminated ${KEY}`))
+    const err = await llm.chatJson(req).catch((e: Error) => e)
+    expect(err).toBeInstanceOf(LlmTransportError)
+    expect((err as Error).message).toContain('terminated')
+    expect((err as Error).message).not.toContain(KEY)
+    expect(fetchFn).toHaveBeenCalledTimes(2)
+    expect(rows.map((r) => r.ok)).toEqual([false, false])
+    expect(JSON.stringify(rows)).not.toContain(KEY)
+  })
+
+  it('does not retry an error with a 4xx status', async () => {
+    const { llm, fetchFn } = setup(1, () => Response.json({ error: { message: 'bad request' } }, { status: 400 }))
+    const err = await llm.chatJson(req).catch((e: Error) => e)
+    expect(err).not.toBeInstanceOf(LlmTransportError)
+    expect(fetchFn).toHaveBeenCalledTimes(1)
+  })
+
+  it('retries an embed batch whose body breaks off once, then throws LlmTransportError', async () => {
+    const embedOk = (input: string[]) =>
+      Response.json({ object: 'list', model: 'm/embed', data: input.map((_, index) => ({ object: 'embedding', index, embedding: [index] })), usage: { prompt_tokens: 1, cost: 1e-7 } })
+    let n = 0
+    const once = setup(1, (_url, body) => (n++ === 0 ? brokenBody() : embedOk(body.input as string[])))
+    expect(await once.llm.embed(['a', 'b'])).toEqual([[0], [1]])
+    expect(once.fetchFn).toHaveBeenCalledTimes(2)
+    const twice = setup(1, () => brokenBody())
+    await expect(twice.llm.embed(['a'])).rejects.toBeInstanceOf(LlmTransportError)
+    expect(twice.fetchFn).toHaveBeenCalledTimes(2)
+  })
+})
+
+describe('isTransportError', () => {
+  it('is true for dropped connections and 5xx, false for 4xx, output errors and plain errors', () => {
+    expect(isTransportError(new TypeError('terminated'))).toBe(true)
+    expect(isTransportError(new Error('read ECONNRESET'))).toBe(true)
+    expect(isTransportError(new OpenAI.APIConnectionError({ message: 'Connection error.' }))).toBe(true)
+    expect(isTransportError(Object.assign(new Error('bad gateway'), { status: 502 }))).toBe(true)
+    expect(isTransportError(Object.assign(new Error('terminated'), { status: 401 }))).toBe(false)
+    expect(isTransportError(new LlmOutputError('read: invalid JSON after 2 attempts'))).toBe(false)
+    expect(isTransportError(new LlmTransportError('read: terminated (after one retry)'))).toBe(false)
+    expect(isTransportError(new Error('something else'))).toBe(false)
   })
 })

@@ -24,6 +24,8 @@ export class FakeLlm implements Llm {
   readonly calls: { purpose: ChatPurpose; system: string; user: string }[] = []
   readonly embedCalls: string[][] = []
   readonly vectors = new Map<string, number[]>()
+  /** Thrown, one per call and in order, by the next embed calls. */
+  readonly embedErrors: Error[] = []
   private readonly queues = new Map<ChatPurpose, Responder[]>()
   private readonly fallbacks = new Map<ChatPurpose, Responder>()
   private readonly ledger: SpendLedger | null
@@ -73,6 +75,8 @@ export class FakeLlm implements Llm {
   }
 
   async embed(texts: string[]): Promise<number[][]> {
+    const failure = this.embedErrors.shift()
+    if (failure) throw failure
     await this.charge('embed', this.embeddingModel)
     this.embedCalls.push(texts)
     return texts.map((t) => this.vectors.get(t) ?? hashVector(t))
