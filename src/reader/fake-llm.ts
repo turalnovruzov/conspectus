@@ -31,12 +31,20 @@ export class FakeLlm implements Llm {
   private readonly ledger: SpendLedger | null
   private readonly costPerCall: number
   private readonly reservePerCall: number
+  private readonly delayMs: number
+  private inFlight = 0
+  /** The most calls that were between their reservation and their record at one time. */
+  maxInFlight = 0
 
-  /** `reservePerCall` defaults to the cost; set it lower to play a call that costs more than its estimate. */
-  constructor(options: { ledger?: SpendLedger; costPerCall?: number; reservePerCall?: number; chatModel?: string; embeddingModel?: string } = {}) {
+  /**
+   * `reservePerCall` defaults to the cost; set it lower to play a call that costs more than its estimate.
+   * `delayMs` holds each call open between reserving and recording, as a real request does, so calls overlap.
+   */
+  constructor(options: { ledger?: SpendLedger; costPerCall?: number; reservePerCall?: number; delayMs?: number; chatModel?: string; embeddingModel?: string } = {}) {
     this.ledger = options.ledger ?? null
     this.costPerCall = options.costPerCall ?? 0
     this.reservePerCall = options.reservePerCall ?? this.costPerCall
+    this.delayMs = options.delayMs ?? 0
     this.chatModel = options.chatModel ?? 'fake/chat'
     this.embeddingModel = options.embeddingModel ?? 'fake/embed'
   }
@@ -56,8 +64,12 @@ export class FakeLlm implements Llm {
   }
 
   private async charge(purpose: ChatPurpose | 'embed', model: string): Promise<void> {
-    if (!this.ledger) return
-    const reservation = this.ledger.reserve(this.reservePerCall)
+    const reservation = this.ledger?.reserve(this.reservePerCall)
+    this.inFlight++
+    this.maxInFlight = Math.max(this.maxInFlight, this.inFlight)
+    if (this.delayMs > 0) await new Promise((r) => setTimeout(r, this.delayMs))
+    this.inFlight--
+    if (!this.ledger || !reservation) return
     await this.ledger.record(reservation, { purpose, model, ok: true, reportedCostUsd: this.costPerCall, promptTokens: 1, completionTokens: 1 })
   }
 

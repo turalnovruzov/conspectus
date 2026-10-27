@@ -139,6 +139,8 @@ export const themes = pgTable('themes', {
   id: id(),
   name: text('name').notNull().unique(),
   definition: text('definition').notNull(),
+  embedding: vector('embedding'),
+  embeddingModel: text('embedding_model'),
   createdAt: createdAt(),
 })
 
@@ -175,6 +177,8 @@ export const situations = pgTable('situations', {
   scope: text('scope').notNull().default('ongoing'),
   major: boolean('major').notNull().default(false),
   resolutionSignalAt: ts('resolution_signal_at'),
+  /** The run clock of the last summary; items attached after it are what the next summary folds in. */
+  summarizedAt: ts('summarized_at'),
   createdAt: createdAt(),
   updatedAt: updatedAt(),
 })
@@ -272,9 +276,11 @@ export const partOfLinks = pgTable(
     parentSituationId: uuid('parent_situation_id').references(() => situations.id),
     themeId: uuid('theme_id').references(() => themes.id),
     causeItemId: uuid('cause_item_id').references(() => sourceItems.id),
+    runId: uuid('run_id').references(() => runs.id),
     createdAt: createdAt(),
   },
   (t) => [
+    unique('part_of_links_once').on(t.situationId, t.parentSituationId, t.themeId).nullsNotDistinct(),
     check(
       'part_of_links_one_target',
       sql`(${t.parentSituationId} is not null) <> (${t.themeId} is not null)`,

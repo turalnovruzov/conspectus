@@ -1,6 +1,6 @@
-import { eq, sql } from 'drizzle-orm'
+import { eq, isNull, sql } from 'drizzle-orm'
 import { afterAll, beforeEach, describe, expect, it } from 'vitest'
-import { fetchLog, llmCalls, runs, sourceItems } from '../db/schema'
+import { fetchLog, llmCalls, runs, situations, sourceItems } from '../db/schema'
 import { dayOf, outcomes, scriptedLlm } from './fixture-run'
 import { LlmTransportError } from './llm'
 import { runOnce } from './run'
@@ -14,6 +14,7 @@ beforeEach(() => resetTables(db))
 
 const day = dayOf('2026-10-26')
 const now = new Date('2026-10-26T18:00:00Z')
+const later = new Date('2026-10-26T20:00:00Z')
 
 async function count(table: string): Promise<number> {
   const res = await db.execute<{ n: number }>(sql.raw(`select count(*)::int as n from ${table}`))
@@ -46,10 +47,17 @@ describe('runOnce', () => {
     expect(first.status).toBe('stopped_ceiling')
     const states = await db.select({ state: sourceItems.state, n: sql<number>`count(*)::int` }).from(sourceItems).groupBy(sourceItems.state)
     expect(Object.fromEntries(states.map((s) => [s.state, s.n]))).toEqual({ attached: 8, new: 4 })
+    expect(await db.$count(situations, isNull(situations.summarizedAt))).toBe(8)
     const roomy = new SpendLedger({ ceilingUsd: 1, pricing: {} })
-    const second = await runOnce({ db, llm: scriptedLlm({ ledger: roomy, costPerCall: 0.001 }), ledger: roomy, now, kind: 'live', sources })
+    const secondLlm = scriptedLlm({ ledger: roomy, costPerCall: 0.001 })
+    const second = await runOnce({ db, llm: secondLlm, ledger: roomy, now: later, kind: 'live', sources })
     expect(second.status).toBe('ok')
     expect(await db.$count(sourceItems, eq(sourceItems.state, 'attached'))).toBe(12)
+    expect(await db.$count(situations, isNull(situations.summarizedAt))).toBe(0)
+    // Left-over situations lead the batch list, so the first batch holds only them.
+    const firstBatch = secondLlm.callsFor('summarize').find((c) => c.user.includes('Story number 0 '))!.user
+    for (const n of [0, 1, 2, 3, 4]) expect(firstBatch).toContain(`Story number ${n} `)
+    for (const n of [8, 9, 10, 11]) expect(firstBatch).not.toContain(`Story number ${n} `)
   })
 
   it('logs a failing outlet with ok = false and still finishes ok', async () => {

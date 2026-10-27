@@ -28,3 +28,8 @@ export const CATEGORY_MERGE_MIN = 10
 export const MAX_ARTICLE_FETCHES_PER_RUN = 60
 /** Measured by the model trial; `backfill --plan` multiplies it by the items per day. */
 export const TRIAL_COST_PER_ITEM_USD: number | null = 0.000123
+/** Model calls in flight at once in the read, embed and summarize stages; the judge stage stays one batch at a time. */
+export const MODEL_CONCURRENCY = 4
+/** Nearest other situations, per summarized situation, offered as what it may be part of. */
+export const PART_OF_CANDIDATES = 5
+export const THEME_CANDIDATES = 8
