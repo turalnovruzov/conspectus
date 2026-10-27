@@ -25,6 +25,7 @@ export default function WorldMap({ fills, selectedCountry, onPickCountry }: Prop
         const className = [
           'land',
           fill ? `inv-${fill.involvement}` : '',
+          fill?.quiet ? 'quiet' : '',
           selected ? 'country-selected' : '',
         ]
           .filter(Boolean)
@@ -37,6 +38,7 @@ export default function WorldMap({ fills, selectedCountry, onPickCountry }: Prop
             data-country={c.key}
             data-state={fill?.role ?? 'none'}
             data-involvement={fill?.involvement ?? 'none'}
+            data-quiet={fill?.quiet ? 'true' : undefined}
             data-selected={selected ? 'true' : undefined}
             onClick={() => onPickCountry(c.key)}
           >
