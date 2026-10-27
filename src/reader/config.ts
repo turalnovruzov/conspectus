@@ -1,5 +1,5 @@
-// Provisional until the model trial (plan step 9) writes its picks here.
-export const CHAT_MODEL = 'google/gemini-2.5-flash-lite'
+// Picked by the model trial on 2026-10-27 (scripts/model-trial.ts; scores in ADR 0005).
+export const CHAT_MODEL = 'mistralai/mistral-small-3.2-24b-instruct'
 export const EMBEDDING_MODEL = 'qwen/qwen3-embedding-8b'
 
 export function models(env: NodeJS.Dict<string> = process.env): { chatModel: string; embeddingModel: string } {
@@ -27,4 +27,4 @@ export const CATEGORY_MERGE_EVERY_DAYS = 7
 export const CATEGORY_MERGE_MIN = 10
 export const MAX_ARTICLE_FETCHES_PER_RUN = 60
 /** Measured by the model trial; `backfill --plan` multiplies it by the items per day. */
-export const TRIAL_COST_PER_ITEM_USD: number | null = null
+export const TRIAL_COST_PER_ITEM_USD: number | null = 0.000123
