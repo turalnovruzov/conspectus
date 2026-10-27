@@ -1,19 +1,24 @@
 import { z } from 'zod'
 import { MAP_COUNTRY_NAMES } from '../countries.ts'
+import { ROLES, type UnknownRoleSink, withRoles } from '../roles.ts'
 import { COUNTRY_RULE, DATA_RULE, clean, dataBlock } from './common.ts'
 
-export const readSchema = z.object({
-  items: z.array(
-    z.object({
-      i: z.number().int(),
-      relevant: z.boolean(),
-      skipReason: z.string().nullable(),
-      event: z.string().nullable(),
-      countries: z.array(z.object({ name: z.string(), role: z.string() })),
-      needsArticle: z.boolean(),
-    }),
-  ),
-})
+export function readSchemaFor(onUnknownRole?: UnknownRoleSink) {
+  return z.object({
+    items: z.array(
+      z.object({
+        i: z.number().int(),
+        relevant: z.boolean(),
+        skipReason: z.string().nullable(),
+        event: z.string().nullable(),
+        countries: withRoles({ name: z.string() }, onUnknownRole),
+        needsArticle: z.boolean(),
+      }),
+    ),
+  })
+}
+
+export const readSchema = readSchemaFor()
 
 export type ReadOutput = z.infer<typeof readSchema>
 export type Extraction = ReadOutput['items'][number]
@@ -24,7 +29,7 @@ For every item, in order, answer:
 - relevant: true when the item reports a real happening (or a clear new development) that involves one or more countries and that a reader of world news would want to see on such a map: conflict, politics, diplomacy, elections, protest, disaster, humanitarian crises, health emergencies, climate and environment, the economy at national scale, crime or court cases with weight beyond one town. False for sport results, celebrities, entertainment, lifestyle, travel, product or company trivia, markets, horoscopes, quizzes, and opinion, analysis or explainers that report no new happening. When in doubt, true.
 - skipReason: when not relevant, two to five words saying why; else null.
 - event: when relevant, one plain English sentence (at most 30 words) saying what happened, who did it and where, written for someone who has not seen the item. Translate items in other languages. Else null.
-- countries: the countries the item shows taking part in or affected by the happening, each with role: one lower-case word or two for its part (party, attacker, target, host, mediator, supporting, affected, sanctioning, voting...). Only what the item itself supports; none is fine. ${COUNTRY_RULE}
+- countries: the countries the item shows taking part in or affected by the happening, each with role: exactly one of ${ROLES.join(', ')}. Only what the item itself supports; none is fine. ${COUNTRY_RULE}
 - needsArticle: true only when the headline and blurb are too thin to tell what happened or which countries take part; false otherwise. Never true for a not-relevant item.
 
 ${DATA_RULE}

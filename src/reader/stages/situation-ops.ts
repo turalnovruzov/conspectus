@@ -2,6 +2,7 @@ import { and, eq, isNull, sql } from 'drizzle-orm'
 import { involvements, situations } from '../../db/schema.ts'
 import type { DbOrTx, RunNotes } from '../context.ts'
 import { matchCountry } from '../countries.ts'
+import { normalizeRole } from '../roles.ts'
 
 export type Phase = 'active' | 'easing' | 'quiet' | 'ended'
 export type PhaseSignal = 'none' | 'escalation' | 'easing' | 'resolution'
@@ -41,10 +42,14 @@ export function nextPhase(current: PhaseState, signal: PhaseSignal, itemAt: Date
 export interface InvolvementChange {
   country: string
   role: string
-  change: 'pulled_in' | 'joined' | 'stepped_out'
+  change: 'pulled_in' | 'joined' | 'stepped_out' | 'role_changed'
 }
 
-/** Applies involvement changes through the map's country list; returns whether any row changed. */
+/**
+ * Applies involvement changes through the map's country list and the fixed role set; returns whether
+ * any row changed. A country already involved keeps its open row unless the change is stepped_out or
+ * role_changed, so a model naming the same part with another word does not close and reopen rows.
+ */
 export async function applyInvolvement(
   db: DbOrTx,
   notes: RunNotes,
@@ -61,7 +66,12 @@ export async function applyInvolvement(
       notes.unmatchedCountries[name] = (notes.unmatchedCountries[name] ?? 0) + 1
       continue
     }
-    const role = c.role.trim().toLowerCase() || 'involved'
+    const role = normalizeRole(c.role)
+    if (!role) {
+      const word = c.role.trim() || '(empty)'
+      notes.unknownRoles[word] = (notes.unknownRoles[word] ?? 0) + 1
+      continue
+    }
     const [open] = await db
       .select()
       .from(involvements)
@@ -73,12 +83,13 @@ export async function applyInvolvement(
       }
       continue
     }
-    if (open && open.role === role) continue
+    if (open && (c.change !== 'role_changed' || open.role === role)) continue
     if (open) {
       await db.update(involvements).set({ leftOn: day, leftCauseItemId: itemId }).where(eq(involvements.id, open.id))
     }
+    const entry = c.change === 'joined' ? 'joined' : c.change === 'role_changed' && open ? open.entry : 'pulled_in'
     await db.insert(involvements).values({
-      situationId, countryKey: match.key, role, entry: c.change, joinedOn: day, joinedCauseItemId: itemId,
+      situationId, countryKey: match.key, role, entry, joinedOn: day, joinedCauseItemId: itemId,
     })
     changed = true
   }

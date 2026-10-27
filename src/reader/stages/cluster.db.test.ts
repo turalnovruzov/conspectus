@@ -97,16 +97,56 @@ describe('cluster', () => {
     expect(ru).toMatchObject({ situationId: s.id, leftOn: '2026-10-28', leftCauseItemId: item.id })
   })
 
-  it('a role change closes the old row and opens a new one', async () => {
+  it('a role change marked role_changed closes the old row and opens a new one, both citing the item', async () => {
     await openSituation()
     const ctx = await newContext(db, now)
-    await readItem(db, { headline: 'Russia now mediates in the Example war' })
+    const item = await readItem(db, { headline: 'Russia now mediates in the Example war' })
     ctx.llm.script('judge', { decisions: [decision('I1', {
-      action: 'new_event', situation: 'S1', eventTitle: 'Mediation', involvement: [{ country: 'Russia', role: 'mediator', change: 'joined' }],
+      action: 'new_event', situation: 'S1', eventTitle: 'Mediation', involvement: [{ country: 'Russia', role: 'mediator', change: 'role_changed' }],
     })] })
     await cluster(ctx)
     const rows = await db.select().from(involvements).where(eq(involvements.countryKey, '643')).orderBy(involvements.id)
-    expect(rows.map((r) => [r.role, r.leftOn])).toEqual([['attacker', '2026-10-26'], ['mediator', null]])
+    expect(rows.map((r) => [r.role, r.entry, r.leftOn])).toEqual([['attacker', 'joined', '2026-10-26'], ['mediator', 'joined', null]])
+    expect(rows[0].leftCauseItemId).toBe(item.id)
+    expect(rows[1].joinedCauseItemId).toBe(item.id)
+  })
+
+  it('another role word without role_changed keeps the one open row', async () => {
+    await openSituation()
+    for (const [n, role, change] of [[1, 'mediator', 'joined'], [2, 'party', 'pulled_in'], [3, 'affected', 'pulled_in'], [4, 'attacking', 'joined']]) {
+      const ctx = await newContext(db, now)
+      await readItem(db, { headline: `Russia in the Example war, report ${n}` })
+      ctx.llm.script('judge', { decisions: [decision('I1', {
+        action: 'new_event', situation: 'S1', eventTitle: `Report ${n}`, involvement: [{ country: 'Russia', role, change }],
+      })] })
+      await cluster(ctx)
+    }
+    const rows = await db.select().from(involvements).where(eq(involvements.countryKey, '643'))
+    expect(rows.map((r) => [r.role, r.leftOn])).toEqual([['attacker', null]])
+  })
+
+  it('role_changed to a word for the same role changes nothing', async () => {
+    await openSituation()
+    const ctx = await newContext(db, now)
+    await readItem(db, { headline: 'Russia keeps attacking in the Example war' })
+    ctx.llm.script('judge', { decisions: [decision('I1', {
+      action: 'new_event', situation: 'S1', eventTitle: 'More strikes', involvement: [{ country: 'Russia', role: 'Attacking', change: 'role_changed' }],
+    })] })
+    await cluster(ctx)
+    expect(await db.select().from(involvements).where(eq(involvements.countryKey, '643'))).toHaveLength(1)
+  })
+
+  it('maps a synonym onto the role set and drops and logs a word outside it', async () => {
+    const ctx = await newContext(db, now)
+    await readItem(db, { headline: 'Shelling hits Exampleville' })
+    ctx.llm.script('judge', opening({ involvement: [
+      { country: 'Ukraine', role: 'Attacked', change: 'pulled_in' },
+      { country: 'Russia', role: 'overlord', change: 'joined' },
+    ] }))
+    await cluster(ctx)
+    const rows = await db.select().from(involvements)
+    expect(rows.map((r) => [r.countryKey, r.role])).toEqual([['804', 'target']])
+    expect(ctx.notes.unknownRoles).toEqual({ overlord: 1 })
   })
 
   it('does not store Hong Kong and lists it as unmatched', async () => {

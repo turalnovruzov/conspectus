@@ -19,6 +19,7 @@ export interface RunReport {
   onMap: number
   unmatchedCountries: Record<string, number>
   rejectedUrls: number
+  unknownRoles: Record<string, number>
   llmFailures: number
   llmFailureNotes: { stage: string; message: string }[]
   fetchFailures: { outletId: string; error: string | null }[]
@@ -89,6 +90,7 @@ export async function buildReport(db: Db, runId: string, notes: RunNotes): Promi
     onMap: (await loadLiveView(db)).situations.filter((s) => s.onMap).length,
     unmatchedCountries: notes.unmatchedCountries,
     rejectedUrls: notes.rejectedUrls,
+    unknownRoles: notes.unknownRoles,
     llmFailures: failedCalls + notes.llmFailures.length,
     llmFailureNotes: notes.llmFailures,
     fetchFailures: logs.filter((l) => !l.ok || l.error).map((l) => ({ outletId: l.outletId, error: l.error })),
@@ -123,6 +125,7 @@ export function formatReport(run: { id: string; kind: string; simDay: string | n
   row('skipped', Object.entries(r.skipped).map(([k, v]) => `${k}: ${v}`).join(', ') || '0')
   row('unmatched countries', Object.entries(r.unmatchedCountries).map(([k, v]) => `${k} ×${v}`).join(', ') || 'none')
   row('items with a non-http url', r.rejectedUrls)
+  row('unknown role words', Object.entries(r.unknownRoles).map(([k, v]) => `${k} ×${v}`).join(', ') || 'none')
   row('suggested outlets', r.suggestedOutlets.map((s) => `${s.domain} ×${s.count}`).join(', ') || 'none')
   lines.push('', `${'outlet'.padEnd(22)} ${'seen'.padStart(5)} ${'new'.padStart(5)} failed`)
   for (const [id, v] of Object.entries(r.itemsPerOutlet).sort()) {

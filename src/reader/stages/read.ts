@@ -1,12 +1,12 @@
 import { and, asc, eq, isNull, sql } from 'drizzle-orm'
 import { outlets, sourceItems } from '../../db/schema.ts'
 import { MAX_ARTICLE_FETCHES_PER_RUN, READ_BATCH } from '../config.ts'
-import type { StageContext } from '../context.ts'
+import { type StageContext, noteUnknownRole } from '../context.ts'
 import { fetchArticle } from '../fetch/article.ts'
 import type { FetchFn } from '../http.ts'
 import { LlmOutputError } from '../llm.ts'
 import { OUTLETS } from '../outlets.ts'
-import { type Extraction, READ_SYSTEM, type ReadInput, readSchema, readUser } from '../prompts/read.ts'
+import { type Extraction, READ_SYSTEM, type ReadInput, readSchemaFor, readUser } from '../prompts/read.ts'
 
 type Row = {
   id: string
@@ -33,7 +33,7 @@ const inputOf = (row: Row, i: number, article?: string | null): ReadInput => ({
 async function readBatch(ctx: StageContext, inputs: ReadInput[]): Promise<Map<number, Extraction> | null> {
   try {
     const out = await ctx.llm.chatJson({
-      purpose: 'read', schema: readSchema, system: READ_SYSTEM, user: readUser(inputs), maxTokens: 220 * inputs.length + 200,
+      purpose: 'read', schema: readSchemaFor(noteUnknownRole(ctx.notes)), system: READ_SYSTEM, user: readUser(inputs), maxTokens: 220 * inputs.length + 200,
     })
     return new Map(out.items.map((e) => [e.i, e]))
   } catch (err) {

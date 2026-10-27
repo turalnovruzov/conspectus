@@ -1,10 +1,10 @@
 import { and, asc, eq, inArray, isNotNull, isNull, sql } from 'drizzle-orm'
 import { eventItems, events, outlets, situationEvents, situations, sourceItems } from '../../db/schema.ts'
 import { CANDIDATE_EVENT_DAYS, CANDIDATE_EVENTS, CANDIDATE_SITUATIONS, JUDGE_BATCH, REVIVE_ENDED_DAYS } from '../config.ts'
-import { type DbOrTx, type StageContext, daysBefore, isoDay, vectorLiteral } from '../context.ts'
+import { type DbOrTx, type StageContext, daysBefore, isoDay, noteUnknownRole, vectorLiteral } from '../context.ts'
 import { countryNameOf } from '../countries.ts'
 import { LlmOutputError } from '../llm.ts'
-import { type Decision, type EventCandidate, JUDGE_SYSTEM, type JudgeItem, type SituationCandidate, judgeSchema, judgeUser } from '../prompts/judge.ts'
+import { type Decision, type EventCandidate, JUDGE_SYSTEM, type JudgeItem, type SituationCandidate, judgeSchemaFor, judgeUser } from '../prompts/judge.ts'
 import type { Extraction } from '../prompts/read.ts'
 import { versionEvent, versionSituation } from '../versions.ts'
 import { type InvolvementChange, type Phase, applyInvolvement, greatest, liveSituationId, nextPhase, openCountries } from './situation-ops.ts'
@@ -308,7 +308,7 @@ export async function cluster(ctx: StageContext, options: { maxItems?: number } 
     )
     let decisions: Decision[]
     try {
-      const out = await ctx.llm.chatJson({ purpose: 'judge', schema: judgeSchema, system: JUDGE_SYSTEM, user, maxTokens: 260 * batch.length + 200 })
+      const out = await ctx.llm.chatJson({ purpose: 'judge', schema: judgeSchemaFor(noteUnknownRole(ctx.notes)), system: JUDGE_SYSTEM, user, maxTokens: 260 * batch.length + 200 })
       decisions = out.decisions
     } catch (err) {
       if (err instanceof LlmOutputError) {

@@ -12,15 +12,24 @@ export interface RunNotes {
   unmatchedCountries: Record<string, number>
   /** Items dropped at ingest because their URL is not absolute http(s). */
   rejectedUrls: number
+  /** Role words from the model that name none of ROLES; their involvement entries were dropped. */
+  unknownRoles: Record<string, number>
   llmFailures: { stage: string; message: string }[]
   articleFetches: number
   stagesSkipped: string[]
 }
 
+export function noteUnknownRole(notes: RunNotes): (word: string) => void {
+  return (word) => {
+    const key = word.trim() || '(empty)'
+    notes.unknownRoles[key] = (notes.unknownRoles[key] ?? 0) + 1
+  }
+}
+
 export function newNotes(): RunNotes {
   return {
     touched: new Set(), opened: new Set(), ended: new Set(), merged: new Set(),
-    unmatchedCountries: {}, rejectedUrls: 0, llmFailures: [], articleFetches: 0, stagesSkipped: [],
+    unmatchedCountries: {}, rejectedUrls: 0, unknownRoles: {}, llmFailures: [], articleFetches: 0, stagesSkipped: [],
   }
 }
 
