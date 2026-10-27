@@ -100,6 +100,18 @@ describe('toPageModel', () => {
     expect(withThree.moreLabel).toBeNull()
   })
 
+  it('singularises a count of one in the sources label', () => {
+    const s = page([live('a', { outletCount: 1, regionCount: 1, independentCount: 1 })]).situations[0]
+    expect(s.sourcesLabel).toBe('SOURCES · 1 OUTLET · 1 REGION · 1 INDEPENDENT · 0 STATE-RUN')
+  })
+
+  it('sorts an undated row after dated ones and prints no date for it', () => {
+    const rows = page([
+      live('a', { sources: [source('u', null, { outletName: 'Und' }), source('d', '2026-10-01', { outletName: 'Dated' })] }),
+    ]).situations[0].rows
+    expect(rows.map((r) => r.text)).toEqual(['Dated · PRIVATE · 1 OCT 2026 — h-d', 'Und · PRIVATE — h-u'])
+  })
+
   it('upper-cases the owner type and drops a missing date', () => {
     const rows = page([
       live('a', {

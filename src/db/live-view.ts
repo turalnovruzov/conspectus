@@ -110,7 +110,7 @@ export async function loadLiveView(db: Db): Promise<LiveView> {
       format: outlets.format,
       ownerType: outlets.ownerType,
       region: outlets.region,
-      publishedAt: sql<Date | null>`coalesce(${sourceItems.publishedAt}, ${sourceItems.fetchedAt})`.mapWith((v) => (v ? new Date(v) : null)),
+      publishedAt: sourceItems.publishedAt,
       headline: sourceItems.headline,
       url: sourceItems.url,
     })

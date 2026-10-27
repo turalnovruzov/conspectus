@@ -17,8 +17,8 @@ beforeEach(async () => {
 const alpha = async () => (await loadLiveView(db)).situations.find((s) => s.title === 'Fixture border clash alpha')!
 
 describe('seedLiveFixture', () => {
-  it('counts six active outlets', async () => {
-    expect((await loadLiveView(db)).outletCount).toBe(6)
+  it('counts seven active outlets', async () => {
+    expect((await loadLiveView(db)).outletCount).toBe(7)
   })
 
   it('dates the view by the last finished run', async () => {
@@ -41,6 +41,15 @@ describe('seedLiveFixture', () => {
 
   it('gives Alpha its category path', async () => {
     expect((await alpha()).categoryPath).toEqual(['Armed conflict', 'Border clash'])
+  })
+
+  it('keeps an HTML outlet item undated and last, never dated by its fetch time', async () => {
+    const beta = (await loadLiveView(db)).situations.find((s) => s.title === 'Fixture protests beta')!
+    const ledger = beta.sources.find((src) => src.outletId === 'fx-ledger')!
+    expect(ledger.format).toBe('html')
+    expect(ledger.publishedAt).toBeNull()
+    expect(beta.sources.at(-1)).toBe(ledger)
+    expect(beta.sources.slice(0, -1).every((src) => src.publishedAt !== null)).toBe(true)
   })
 
   it('refuses a second seed', async () => {

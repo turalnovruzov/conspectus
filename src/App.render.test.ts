@@ -41,6 +41,11 @@ describe('App render', () => {
     expect(out).toContain('No situations from the news yet.')
   })
 
+  it('renders no country line for a situation with no current countries', () => {
+    const out = html({ status: 'ok', header: 'h', situations: [{ ...situation, involved: [] }] })
+    expect(out).not.toContain('card-line')
+  })
+
   it('never mentions sample data', () => {
     const out = html({ status: 'ok', header: 'h', situations: [situation] })
     expect(out.toLowerCase()).not.toContain('sample data')

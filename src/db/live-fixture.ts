@@ -18,6 +18,7 @@ const OUTLET_SEEDS: OutletSeed[] = [
   { id: 'fx-crescent', name: 'Crescent State News', host: 'crescent.example', region: 'Middle East', ownerType: 'state-run' },
   { id: 'fx-harbor', name: 'Harbor State Radio', host: 'harbor.example', region: 'East Asia', ownerType: 'state-run' },
   { id: 'fx-wiki', name: 'Wikipedia Current events', host: 'en.wikipedia.org', region: 'Global', ownerType: 'non-profit', format: 'mediawiki' },
+  { id: 'fx-ledger', name: 'Ledger Wire', host: 'ledger.example', region: 'Asia', ownerType: 'private', format: 'html' },
   { id: 'fx-retired', name: 'Retired Wire', host: 'retired.example', region: 'Europe', ownerType: 'private', active: false },
 ]
 
@@ -25,6 +26,8 @@ interface ItemSeed {
   outlet: string
   day: string
   url?: string
+  /** An HTML index gives no article date, so the item is stored with none. */
+  undated?: boolean
 }
 
 interface InvolvementSeed {
@@ -86,6 +89,7 @@ const SITUATIONS: SituationSeed[] = [
     items: [
       { outlet: 'fx-northwind', day: '2026-10-23' },
       { outlet: 'fx-lantern', day: '2026-10-22' },
+      { outlet: 'fx-ledger', day: '2026-10-24', undated: true },
     ],
   },
   {
@@ -221,7 +225,7 @@ export async function seedLiveFixture(db: Db): Promise<void> {
             outletId: item.outlet,
             url: item.url ?? `https://${HOSTS.get(item.outlet)}/${s.key}-${n + 1}`,
             headline: `${s.title}: report ${n + 1}`,
-            publishedAt: new Date(`${item.day}T12:00:00Z`),
+            publishedAt: item.undated ? null : new Date(`${item.day}T12:00:00Z`),
           })
           .returning({ id: sourceItems.id })
         await tx.insert(eventItems).values({ eventId: event.id, sourceItemId: source.id })

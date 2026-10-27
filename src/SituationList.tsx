@@ -17,7 +17,7 @@ function Countries({ situation }: { situation: PageSituation }) {
         <span key={line.prefix ?? ''} className="card-line">
           {line.prefix !== null && `${line.prefix}: `}
           {line.names.map((n, i) => (
-            <span key={n.name}>
+            <span key={`${n.name}-${i}`}>
               {i > 0 && ' · '}
               {n.steppedOut ? <span className="struck">{n.name}</span> : n.name}
             </span>
@@ -64,7 +64,7 @@ export default function SituationList({ situations, selectedSituationId, selecte
               </span>
               <span className={selected ? 'card-title' : 'card-name'}>{s.title}</span>
               {selected && <span className="card-one-line">{s.oneLine}</span>}
-              {selected ? <Countries situation={s} /> : <span className="card-line">{currentNames.join(' · ')}</span>}
+              {selected ? <Countries situation={s} /> : currentNames.length > 0 && <span className="card-line">{currentNames.join(' · ')}</span>}
             </button>
             {selected && <Sources situation={s} />}
           </article>

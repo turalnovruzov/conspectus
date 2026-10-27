@@ -64,6 +64,8 @@ export function safeHref(url: string): string | null {
 
 const SHOWN_ROWS = 3
 
+const count = (n: number, singular: string, plural: string) => `${n} ${n === 1 ? singular : plural}`
+
 function sourceRows(s: LiveSituation): SourceRow[] {
   const newestPerOutlet = new Map<string, LiveSituation['sources'][number]>()
   for (const src of s.sources) {
@@ -100,7 +102,7 @@ function toPageSituation(s: LiveSituation, index: number): PageSituation {
       involvement: i.entry === 'joined' ? 'joined' : 'pulled-in',
       steppedOut: i.leftOn !== null,
     })),
-    sourcesLabel: `SOURCES · ${s.outletCount} OUTLETS · ${s.regionCount} REGIONS · ${s.independentCount} INDEPENDENT · ${s.stateRunCount} STATE-RUN`,
+    sourcesLabel: `SOURCES · ${count(s.outletCount, 'OUTLET', 'OUTLETS')} · ${count(s.regionCount, 'REGION', 'REGIONS')} · ${s.independentCount} INDEPENDENT · ${s.stateRunCount} STATE-RUN`,
     rows,
     moreLabel: rows.length > SHOWN_ROWS ? `+ ${rows.length - SHOWN_ROWS} more${latest}` : null,
     hasWikipedia: s.sources.some((src) => src.format === 'mediawiki'),

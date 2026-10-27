@@ -29,7 +29,7 @@ test.beforeEach(async ({ page }) => {
 test('header, disclaimer and heading', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Conspectus' })).toBeVisible()
   await expect(page.getByText('The world, from above')).toBeVisible()
-  await expect(page.locator('[data-live]')).toHaveText('LIVE · 6 OUTLETS · UPDATED 27 OCT 2026 06:05 UTC')
+  await expect(page.locator('[data-live]')).toHaveText('LIVE · 7 OUTLETS · UPDATED 27 OCT 2026 06:05 UTC')
   await expect(page.locator('[data-disclaimer]')).toHaveText(DISCLAIMER)
   await expect(page.locator('[data-situations-heading]')).toHaveText('SITUATIONS · 3 FROM THE NEWS')
   await expect(page.getByText(/sample data/i)).toHaveCount(0)
@@ -97,6 +97,15 @@ test("picking a situation opens the board's panel", async ({ page }) => {
   await expect(credit.locator('a[href="https://en.wikipedia.org/wiki/Portal:Current_events"]')).toHaveCount(1)
   await expect(credit.locator('a[href*="creativecommons.org/licenses/by-sa/4.0/"]')).toHaveCount(1)
   await expect(page.locator(country('124'))).toHaveAttribute('data-state', 'none')
+})
+
+test('a row with no article date shows none and does not sort first', async ({ page }) => {
+  await card(page, BETA).click()
+  const rows = page.locator('[data-situation-card]').nth(1).locator('.source-row')
+  await expect(rows).toHaveCount(3)
+  await expect(rows.nth(0)).not.toContainText('Ledger Wire')
+  await expect(rows.nth(2)).toHaveText('Ledger Wire · PRIVATE — Fixture protests beta: report 3')
+  await expect(rows.nth(2)).not.toContainText('2026')
 })
 
 test('every source is a real link', async ({ page }) => {
