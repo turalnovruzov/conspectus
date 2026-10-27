@@ -65,4 +65,10 @@ describe('app uses the design system', () => {
     expect(guidePageSrc).toContain('style-guide.css')
     expect(guidePageSrc).not.toContain('styles.css')
   })
+
+  it('the map page reads from the database', () => {
+    expect(pageSrc).toContain('loadSituations')
+    expect(pageSrc).toContain('force-dynamic')
+    expect(pageSrc).not.toContain('sample-situations.json')
+  })
 })

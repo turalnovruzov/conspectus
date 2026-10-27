@@ -1,8 +1,10 @@
 import '../styles.css'
-import sample from '../data/sample-situations.json'
 import App from '../App'
-import { parseSituations } from '../situations'
+import { getDb } from '../db/client'
+import { loadSituations } from '../db/load-situations'
 
-export default function Page() {
-  return <App situations={parseSituations(sample)} />
+export const dynamic = 'force-dynamic'
+
+export default async function Page() {
+  return <App situations={await loadSituations(getDb().db)} />
 }
