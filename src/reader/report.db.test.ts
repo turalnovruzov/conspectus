@@ -49,7 +49,7 @@ describe('buildReport', () => {
   it('says the key delta can include other spend and the ledger is the figure of record', async () => {
     const [run] = await db.insert(runs).values({ kind: 'live', ceilingUsd: '1', keyBefore: { usage: 1 }, keyAfter: { usage: 1.2 } }).returning()
     const text = formatReport({ ...run, status: 'ok' }, await buildReport(db, run.id, newNotes()))
-    expect(text).toMatch(/key usage before \/ after\s+1 \/ 1\.2\n\s+\(the key delta can include other spend on the same key at the same time; the spend this run above, from the per-call ledger, is the figure of record\)/)
+    expect(text).toMatch(/key usage before \/ after\s+1 \/ 1\.2\n\s+\(the key delta can include other spend on the same key at the same time, and the key reading can lag behind recent calls; the spend this run above, from the per-call ledger, is the figure of record\)/)
   })
 
   it('reduces hosts to their registrable domain', () => {

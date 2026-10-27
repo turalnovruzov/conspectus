@@ -35,3 +35,17 @@ Each entry is: **Rule** → **Why** → **Minimal example** → **Gotcha**. Entr
 - **Why:** Tural's real database must never be reachable from a test.
 - **Example:** `const { db, pool } = createDb(testDatabaseUrl())`
 - **Gotcha:** files under `scripts/`, `src/db/` and `src/env.ts` import local files with the `.ts` extension and use no `enum`, because `node scripts/x.ts` runs them through Node's type stripping.
+
+### Reader network goes through two paths, and every model call reserves its cost first
+
+- **Rule:** outbound network from the reader goes only through `src/reader/http.ts` `fetchText` (outlet content; `allowedHosts` required) and `llm.ts` / `openrouter-key.ts` (OpenRouter only). Every model call reserves its cost in `SpendLedger` before the request.
+- **Why:** the reader never reaches unlisted hosts, and spend cannot pass a ceiling.
+- **Example:** `fetchText(url, { allowedHosts: outlet.hosts })`
+- **Gotcha:** `boundaries.test.ts` fails on a `fetch(` anywhere else in `src/reader`; tests stub global `fetch` to throw via `src/reader/test-setup.ts`.
+
+### Model-call stages batch through `mapLimit`, with `serial()` for colliding writes
+
+- **Rule:** model-call stages run their batches through `mapLimit(batches, MODEL_CONCURRENCY, fn)`; writes that can collide across batches (new categories or themes) go through one `serial()` runner; a stage whose batches depend on earlier batches' writes (the judge) stays a plain sequential loop.
+- **Why:** speed without passing the spend ceiling or racing writes.
+- **Example:** `const inTurn = serial(); await mapLimit(batches, MODEL_CONCURRENCY, async (b) => { const out = await ctx.llm.chatJson(...); await inTurn(() => applyBatch(ctx, p, out)) })`
+- **Gotcha:** a check-then-increment on shared state stays in one synchronous step with no `await` between (see the article-fetch cap in `read.ts`); test overlap with `FakeLlm({ delayMs })` and assert `maxInFlight`.

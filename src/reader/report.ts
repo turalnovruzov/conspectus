@@ -30,7 +30,7 @@ export interface RunReport {
   suggestedOutlets: { domain: string; count: number }[]
 }
 
-export const KEY_DELTA_NOTE = '(the key delta can include other spend on the same key at the same time; the spend this run above, from the per-call ledger, is the figure of record)'
+export const KEY_DELTA_NOTE = '(the key delta can include other spend on the same key at the same time, and the key reading can lag behind recent calls; the spend this run above, from the per-call ledger, is the figure of record)'
 
 const ratio = (a: number, b: number) => (b === 0 ? 0 : Math.round((a / b) * 10_000) / 10_000)
 const usage = (k: unknown) => (typeof (k as KeyInfo | null)?.usage === 'number' ? (k as KeyInfo).usage! : null)
