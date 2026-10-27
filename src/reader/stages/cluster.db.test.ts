@@ -14,7 +14,7 @@ const opening = (fields: Record<string, unknown> = {}) =>
   ({ decisions: [decision('I1', {
     action: 'new_situation', eventTitle: 'Shelling hits Exampleville',
     newSituation: { title: 'Example war', oneLine: 'Fighting between A and B.', scope: 'ongoing' },
-    involvement: [{ country: 'Ukraine', role: 'party', change: 'pulled_in' }, { country: 'Russia', role: 'attacker', change: 'joined' }],
+    involvement: [{ country: 'Ukraine', role: 'party', change: 'pulled_in', evidence: null }, { country: 'Russia', role: 'attacker', change: 'joined', evidence: null }],
     ...fields,
   })] })
 
@@ -90,19 +90,20 @@ describe('cluster', () => {
     const ctx = await newContext(db, new Date('2026-10-28T12:00:00Z'))
     const item = await readItem(db, { headline: 'Russia withdraws from the Example war', publishedAt: new Date('2026-10-28T09:00:00Z') })
     ctx.llm.script('judge', { decisions: [decision('I1', {
-      action: 'new_event', situation: 'S1', eventTitle: 'Withdrawal', involvement: [{ country: 'Russia', role: 'attacker', change: 'stepped_out' }],
+      action: 'new_event', situation: 'S1', eventTitle: 'Withdrawal', involvement: [{ country: 'Russia', role: 'attacker', change: 'stepped_out', evidence: null }],
     })] })
     await cluster(ctx)
     const [ru] = await db.select().from(involvements).where(eq(involvements.countryKey, '643'))
     expect(ru).toMatchObject({ situationId: s.id, leftOn: '2026-10-28', leftCauseItemId: item.id })
   })
 
-  it('a role change marked role_changed closes the old row and opens a new one, both citing the item', async () => {
+  it('a role change marked role_changed with a quote from the item closes the old row and opens a new one, both citing the item', async () => {
     await openSituation()
     const ctx = await newContext(db, now)
     const item = await readItem(db, { headline: 'Russia now mediates in the Example war' })
     ctx.llm.script('judge', { decisions: [decision('I1', {
-      action: 'new_event', situation: 'S1', eventTitle: 'Mediation', involvement: [{ country: 'Russia', role: 'mediator', change: 'role_changed' }],
+      action: 'new_event', situation: 'S1', eventTitle: 'Mediation',
+      involvement: [{ country: 'Russia', role: 'mediator', change: 'role_changed', evidence: '"Russia now mediates"' }],
     })] })
     await cluster(ctx)
     const rows = await db.select().from(involvements).where(eq(involvements.countryKey, '643')).orderBy(involvements.id)
@@ -111,13 +112,45 @@ describe('cluster', () => {
     expect(rows[1].joinedCauseItemId).toBe(item.id)
   })
 
+  it.each([
+    ['no evidence', null],
+    ['a quote the item does not contain', 'Russia withdraws all of its troops'],
+    ['a quote too short to show anything', 'Russia'],
+  ])('role_changed with %s keeps the one open row and is counted', async (_label, evidence) => {
+    await openSituation()
+    const ctx = await newContext(db, now)
+    await readItem(db, { headline: 'Russia now mediates in the Example war' })
+    ctx.llm.script('judge', { decisions: [decision('I1', {
+      action: 'new_event', situation: 'S1', eventTitle: 'Mediation', involvement: [{ country: 'Russia', role: 'mediator', change: 'role_changed', evidence }],
+    })] })
+    await cluster(ctx)
+    const rows = await db.select().from(involvements).where(eq(involvements.countryKey, '643'))
+    expect(rows.map((r) => [r.role, r.leftOn])).toEqual([['attacker', null]])
+    expect(ctx.notes.roleChangesUnsupported).toBe(1)
+  })
+
+  it('unchanged writes nothing, and does not open a row for a country not yet listed', async () => {
+    await openSituation()
+    const ctx = await newContext(db, now)
+    await readItem(db, { headline: 'Fighting goes on in the Example war' })
+    ctx.llm.script('judge', { decisions: [decision('I1', {
+      action: 'new_event', situation: 'S1', eventTitle: 'More fighting', involvement: [
+        { country: 'Russia', role: 'party', change: 'unchanged', evidence: null },
+        { country: 'Poland', role: 'supporting', change: 'unchanged', evidence: null },
+      ],
+    })] })
+    await cluster(ctx)
+    const rows = await db.select().from(involvements).orderBy(involvements.id)
+    expect(rows.map((r) => [r.countryKey, r.role, r.leftOn])).toEqual([['804', 'party', null], ['643', 'attacker', null]])
+  })
+
   it('another role word without role_changed keeps the one open row', async () => {
     await openSituation()
     for (const [n, role, change] of [[1, 'mediator', 'joined'], [2, 'party', 'pulled_in'], [3, 'affected', 'pulled_in'], [4, 'attacking', 'joined']]) {
       const ctx = await newContext(db, now)
       await readItem(db, { headline: `Russia in the Example war, report ${n}` })
       ctx.llm.script('judge', { decisions: [decision('I1', {
-        action: 'new_event', situation: 'S1', eventTitle: `Report ${n}`, involvement: [{ country: 'Russia', role, change }],
+        action: 'new_event', situation: 'S1', eventTitle: `Report ${n}`, involvement: [{ country: 'Russia', role, change, evidence: null }],
       })] })
       await cluster(ctx)
     }
@@ -130,7 +163,7 @@ describe('cluster', () => {
     const ctx = await newContext(db, now)
     await readItem(db, { headline: 'Russia keeps attacking in the Example war' })
     ctx.llm.script('judge', { decisions: [decision('I1', {
-      action: 'new_event', situation: 'S1', eventTitle: 'More strikes', involvement: [{ country: 'Russia', role: 'Attacking', change: 'role_changed' }],
+      action: 'new_event', situation: 'S1', eventTitle: 'More strikes', involvement: [{ country: 'Russia', role: 'Attacking', change: 'role_changed', evidence: 'Russia keeps attacking in the Example war' }],
     })] })
     await cluster(ctx)
     expect(await db.select().from(involvements).where(eq(involvements.countryKey, '643'))).toHaveLength(1)
@@ -140,8 +173,8 @@ describe('cluster', () => {
     const ctx = await newContext(db, now)
     await readItem(db, { headline: 'Shelling hits Exampleville' })
     ctx.llm.script('judge', opening({ involvement: [
-      { country: 'Ukraine', role: 'Attacked', change: 'pulled_in' },
-      { country: 'Russia', role: 'overlord', change: 'joined' },
+      { country: 'Ukraine', role: 'Attacked', change: 'pulled_in', evidence: null },
+      { country: 'Russia', role: 'overlord', change: 'joined', evidence: null },
     ] }))
     await cluster(ctx)
     const rows = await db.select().from(involvements)
@@ -152,7 +185,7 @@ describe('cluster', () => {
   it('does not store Hong Kong and lists it as unmatched', async () => {
     const ctx = await newContext(db, now)
     await readItem(db, { headline: 'Protest in Hong Kong' })
-    ctx.llm.script('judge', opening({ involvement: [{ country: 'Hong Kong', role: 'host', change: 'joined' }] }))
+    ctx.llm.script('judge', opening({ involvement: [{ country: 'Hong Kong', role: 'host', change: 'joined', evidence: null }] }))
     await cluster(ctx)
     expect(await db.select().from(involvements)).toHaveLength(0)
     expect(ctx.notes.unmatchedCountries).toEqual({ 'Hong Kong': 1 })

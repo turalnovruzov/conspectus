@@ -141,7 +141,7 @@ async function touchSituation(
       updatedAt: ctx.now,
     })
     .where(eq(situations.id, situationId))
-  await applyInvolvement(tx, ctx.notes, situationId, decision.involvement, item.id, isoDay(at))
+  await applyInvolvement(tx, ctx.notes, situationId, decision.involvement, item.id, isoDay(at), `${item.headline}\n${item.blurb ?? ''}`)
   await versionSituation(tx, situationId, { causeItemId: item.id, changedBy: 'judge' })
   ctx.notes.touched.add(situationId)
 }

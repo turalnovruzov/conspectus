@@ -41,10 +41,10 @@ describe('roles', () => {
     expect(seen).toEqual(['bystander'])
   })
 
-  it('the JSON schema sent to the model offers only the role set and the four changes', () => {
+  it('the JSON schema sent to the model offers only the role set and the five changes', () => {
     const text = JSON.stringify(jsonSchemaOf(judgeSchema))
     expect(text).toContain(JSON.stringify([...ROLES]))
-    expect(text).toContain(JSON.stringify(['pulled_in', 'joined', 'stepped_out', 'role_changed']))
+    expect(text).toContain(JSON.stringify(['pulled_in', 'joined', 'stepped_out', 'role_changed', 'unchanged']))
   })
 
   it('both prompts list the role set', () => {

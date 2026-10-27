@@ -14,6 +14,8 @@ export interface RunNotes {
   rejectedUrls: number
   /** Role words from the model that name none of ROLES; their involvement entries were dropped. */
   unknownRoles: Record<string, number>
+  /** role_changed answers ignored because their evidence is not a quote from the item. */
+  roleChangesUnsupported: number
   llmFailures: { stage: string; message: string }[]
   articleFetches: number
   stagesSkipped: string[]
@@ -29,7 +31,7 @@ export function noteUnknownRole(notes: RunNotes): (word: string) => void {
 export function newNotes(): RunNotes {
   return {
     touched: new Set(), opened: new Set(), ended: new Set(), merged: new Set(),
-    unmatchedCountries: {}, rejectedUrls: 0, unknownRoles: {}, llmFailures: [], articleFetches: 0, stagesSkipped: [],
+    unmatchedCountries: {}, rejectedUrls: 0, unknownRoles: {}, roleChangesUnsupported: 0, llmFailures: [], articleFetches: 0, stagesSkipped: [],
   }
 }
 

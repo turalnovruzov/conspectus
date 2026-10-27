@@ -33,7 +33,7 @@ export function scriptedLlm(options: ConstructorParameters<typeof FakeLlm>[0] = 
     decisions: [...req.user.matchAll(/^(I\d+) · /gm)].map(([, h]) => ({
       item: h, action: 'new_situation', event: null, sameAs: null, situation: null, eventTitle: 'e',
       newSituation: { title: `Story ${h}`, oneLine: 'x', scope: 'ongoing' },
-      involvement: [{ country: 'Kenya', role: 'affected', change: 'pulled_in' }], phaseSignal: 'none', reason: 'r',
+      involvement: [{ country: 'Kenya', role: 'affected', change: 'pulled_in', evidence: null }], phaseSignal: 'none', reason: 'r',
     })),
   }))
   llm.fallback('summarize', (req: { user: string }) => ({

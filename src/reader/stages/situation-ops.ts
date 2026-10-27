@@ -42,13 +42,26 @@ export function nextPhase(current: PhaseState, signal: PhaseSignal, itemAt: Date
 export interface InvolvementChange {
   country: string
   role: string
-  change: 'pulled_in' | 'joined' | 'stepped_out' | 'role_changed'
+  change: 'pulled_in' | 'joined' | 'stepped_out' | 'role_changed' | 'unchanged'
+  evidence?: string | null
+}
+
+/** Shortest quote accepted as evidence for a role change. */
+export const MIN_EVIDENCE_CHARS = 15
+
+const normalised = (text: string) => text.toLowerCase().replace(/[<>]/g, '').replace(/\s+/g, ' ').trim()
+
+/** Whether `evidence` is a quote of at least MIN_EVIDENCE_CHARS that appears in the item's own text. */
+export function evidenceInItem(evidence: string | null | undefined, itemText: string): boolean {
+  const quote = normalised(evidence ?? '').replace(/^["'“”‘’]+|["'“”‘’.…]+$/g, '').trim()
+  return quote.length >= MIN_EVIDENCE_CHARS && normalised(itemText).includes(quote)
 }
 
 /**
  * Applies involvement changes through the map's country list and the fixed role set; returns whether
- * any row changed. A country already involved keeps its open row unless the change is stepped_out or
- * role_changed, so a model naming the same part with another word does not close and reopen rows.
+ * any row changed. A country already involved keeps its open row unless the change is stepped_out, or
+ * role_changed with a quote from the item's own text (`itemText`) as evidence, so a model naming the
+ * same part with another word does not close and reopen rows.
  */
 export async function applyInvolvement(
   db: DbOrTx,
@@ -57,9 +70,11 @@ export async function applyInvolvement(
   changes: InvolvementChange[],
   itemId: string,
   day: string,
+  itemText: string,
 ): Promise<boolean> {
   let changed = false
   for (const c of changes) {
+    if (c.change === 'unchanged') continue
     const match = matchCountry(c.country)
     if (!match) {
       const name = c.country.trim() || '(empty)'
@@ -84,6 +99,10 @@ export async function applyInvolvement(
       continue
     }
     if (open && (c.change !== 'role_changed' || open.role === role)) continue
+    if (open && !evidenceInItem(c.evidence, itemText)) {
+      notes.roleChangesUnsupported++
+      continue
+    }
     if (open) {
       await db.update(involvements).set({ leftOn: day, leftCauseItemId: itemId }).where(eq(involvements.id, open.id))
     }
