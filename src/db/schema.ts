@@ -55,7 +55,7 @@ export const runs = pgTable('runs', {
   finishedAt: ts('finished_at'),
   status: text('status').notNull().default('running'),
   ceilingUsd: numeric('ceiling_usd', { precision: 10, scale: 4 }).notNull(),
-  spentUsd: numeric('spent_usd', { precision: 12, scale: 6 }).notNull().default('0'),
+  spentUsd: numeric('spent_usd', { precision: 12, scale: 8 }).notNull().default('0'),
   keyBefore: jsonb('key_before'),
   keyAfter: jsonb('key_after'),
   chatModel: text('chat_model'),

@@ -36,7 +36,7 @@ CREATE TABLE "runs" (
 	"finished_at" timestamp with time zone,
 	"status" text DEFAULT 'running' NOT NULL,
 	"ceiling_usd" numeric(10, 4) NOT NULL,
-	"spent_usd" numeric(12, 6) DEFAULT '0' NOT NULL,
+	"spent_usd" numeric(12, 8) DEFAULT '0' NOT NULL,
 	"key_before" jsonb,
 	"key_after" jsonb,
 	"chat_model" text,

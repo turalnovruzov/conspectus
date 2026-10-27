@@ -24,12 +24,7 @@ describe('network paths', () => {
 
   it('lets llm.ts and openrouter-key.ts reach only https://openrouter.ai/api/v1', () => {
     for (const name of ['llm.ts', 'openrouter-key.ts']) {
-      let text: string
-      try {
-        text = readFileSync(join(root, name), 'utf8')
-      } catch {
-        continue
-      }
+      const text = readFileSync(join(root, name), 'utf8')
       const urls = text.match(/https?:\/\/[^\s'"`)]+/g) ?? []
       for (const url of urls) expect(url.startsWith('https://openrouter.ai/api/v1') || url === 'https://github.com/turalnovruzov/conspectus', `${name}: ${url}`).toBe(true)
     }

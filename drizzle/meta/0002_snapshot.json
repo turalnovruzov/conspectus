@@ -1,5 +1,5 @@
 {
-  "id": "293e6c4a-dbf2-4663-b7ef-b77f59d7fd4b",
+  "id": "e6f80508-cc3c-4eca-8c9f-9dc3acef7b19",
   "prevId": "2950a254-28f7-4eb1-b499-ed115b1d72af",
   "version": "7",
   "dialect": "postgresql",
@@ -1030,7 +1030,7 @@
         },
         "spent_usd": {
           "name": "spent_usd",
-          "type": "numeric(12, 6)",
+          "type": "numeric(12, 8)",
           "primaryKey": false,
           "notNull": true,
           "default": "'0'"
