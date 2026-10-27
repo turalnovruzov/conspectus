@@ -14,13 +14,10 @@ import type { Extraction } from '../src/reader/prompts/read.ts'
 import { runOnce } from '../src/reader/run.ts'
 import { staticSources } from '../src/reader/sources.ts'
 import { SpendLedger } from '../src/reader/spend.ts'
-import type { FetchOutcome } from '../src/reader/stages/ingest.ts'
 import { liveSituationId } from '../src/reader/stages/situation-ops.ts'
-import { crossStoryAttach, jaccard, median, pairAgreement, runCandidates } from '../src/reader/trial-score.ts'
+import { crossStoryAttach, jaccard, maxPerGroup, median, pairAgreement, runCandidates, trialOutcomes } from '../src/reader/trial-score.ts'
 import type { RawItem } from '../src/reader/types.ts'
 
-const TRIAL_TOTAL_USD = 1.5
-const PER_CANDIDATE_USD = 0.25
 const EMBED_TRIAL_USD = 0.05
 
 const { values } = parseArgs({
@@ -28,13 +25,19 @@ const { values } = parseArgs({
     dir: { type: 'string' },
     chat: { type: 'string' },
     embed: { type: 'string' },
+    out: { type: 'string' },
+    ceiling: { type: 'string', default: '1.5' },
   },
 })
 if (!values.dir || !values.chat || !values.embed) {
-  console.log('usage: node scripts/model-trial.ts --dir <trial dir with sample.json, labels.json> --chat a,b,c --embed x,y,z')
+  console.log('usage: node scripts/model-trial.ts --dir <trial dir with sample.json, labels.json> --chat a,b,c --embed x,y,z [--out <dir for results.json, report.md>] [--ceiling 1.5]')
   process.exit(1)
 }
 const dir = values.dir
+const outDir = values.out ?? dir
+const TRIAL_TOTAL_USD = Number(values.ceiling)
+if (!(TRIAL_TOTAL_USD > 0 && TRIAL_TOTAL_USD <= 1.5)) throw new Error('--ceiling must be above 0 and at most 1.5')
+const PER_CANDIDATE_USD = Math.min(0.25, TRIAL_TOTAL_USD - EMBED_TRIAL_USD)
 const chatModels = values.chat.split(',')
 const embedModels = values.embed.split(',')
 
@@ -120,14 +123,6 @@ function timed(llm: Llm, stats: { calls: number; ok: number; ms: number[] }): Ll
   }
 }
 
-function outcomesOf(items: typeof sample, at: Date): FetchOutcome[] {
-  const byOutlet = new Map<string, RawItem[]>()
-  for (const i of items) byOutlet.set(i.outletId, [...(byOutlet.get(i.outletId) ?? []), i])
-  return [...byOutlet].map(([outletId, list]) => ({
-    outletId, url: `trial:${outletId}`, ok: true, httpStatus: 200, error: null, ms: 0, startedAt: at, items: list,
-  }))
-}
-
 async function chatTrial(model: string, embeddingModel: string) {
   await resetDatabase(dbUrl)
   const { db, pool } = createDb(dbUrl)
@@ -141,7 +136,7 @@ async function chatTrial(model: string, embeddingModel: string) {
     const runIds: string[] = []
     const statuses: string[] = []
     for (const [items, now] of [[ordered.slice(0, half), firstNow], [ordered.slice(half), new Date()]] as const) {
-      const r = await runOnce({ db, llm, ledger, now, kind: 'trial', sources: staticSources(outcomesOf(items, now)), windowHours: null })
+      const r = await runOnce({ db, llm, ledger, now, kind: 'trial', sources: staticSources(trialOutcomes(items, now)), windowHours: null })
       runIds.push(r.runId)
       statuses.push(r.status)
     }
@@ -190,6 +185,7 @@ async function chatTrial(model: string, embeddingModel: string) {
       pairs, countryJaccard, combined: (pairs.f1 + countryJaccard) / 2,
       crossStoryAttach: crossStoryAttach(placements, storyOf),
       situations: new Set([...group.values()].filter(Boolean)).size,
+      maxItemsPerSituation: maxPerGroup(group.values()),
       jsonValidRate: chatRows.length ? stats.ok / chatRows.length : 0,
       chatCalls: stats.calls, chatAttempts: chatRows.length, p50LatencyMs: median(stats.ms),
     }
@@ -217,7 +213,7 @@ await new Promise((r) => setTimeout(r, 60_000))
 const keyAfter = keyView(await readKey(apiKey))
 const labelsHash = readFileSync(join(dir, 'labels.sha256'), 'utf8').split(' ')[0]
 const results = { keyBefore, keyAfter, trialSpentUsd: parent.spentUsd, labelsSha256: labelsHash, embeddings, bestEmbedding: bestEmbedding.model, outcomes, chosen: chosen?.model ?? null }
-writeFileSync(join(dir, 'results.json'), JSON.stringify(results, null, 1))
+writeFileSync(join(outDir, 'results.json'), JSON.stringify(results, null, 1))
 
 const pct = (n: number) => `${(n * 100).toFixed(1)} %`
 const lines = [
@@ -237,14 +233,14 @@ const lines = [
   '',
   `## Chat models (two runs each, date order, embeddings ${bestEmbedding.model})`,
   '',
-  '| model | relevance agreement | pair P / R / F1 | country Jaccard | cross-story attach | JSON valid | $ / 100 items | p50 latency | situations | runs |',
-  '|---|---|---|---|---|---|---|---|---|---|',
-  ...done.map((r) => `| ${r.model} | ${pct(r.relevanceAgreement)} | ${r.pairs.precision.toFixed(2)} / ${r.pairs.recall.toFixed(2)} / ${r.pairs.f1.toFixed(2)} | ${r.countryJaccard.toFixed(2)} | ${r.crossStoryAttach.crossStory} of ${r.crossStoryAttach.attached} (${pct(r.crossStoryAttach.share)}) | ${pct(r.jsonValidRate)} | ${r.usdPer100Items.toFixed(4)} | ${r.p50LatencyMs ?? '?'} ms | ${r.situations} | ${r.statuses.join(', ')} |`),
-  ...outcomes.filter((o) => o.status !== 'done').map((o) => `| ${o.model} | ${o.status}: ${'reason' in o ? o.reason : ''} |||||||||`),
+  '| model | relevance agreement | pair P / R / F1 | country Jaccard | cross-story attach | JSON valid | $ / 100 items | p50 latency | situations | most items in one situation | runs |',
+  '|---|---|---|---|---|---|---|---|---|---|---|',
+  ...done.map((r) => `| ${r.model} | ${pct(r.relevanceAgreement)} | ${r.pairs.precision.toFixed(2)} / ${r.pairs.recall.toFixed(2)} / ${r.pairs.f1.toFixed(2)} | ${r.countryJaccard.toFixed(2)} | ${r.crossStoryAttach.crossStory} of ${r.crossStoryAttach.attached} (${pct(r.crossStoryAttach.share)}) | ${pct(r.jsonValidRate)} | ${r.usdPer100Items.toFixed(4)} | ${r.p50LatencyMs ?? '?'} ms | ${r.situations} | ${r.maxItemsPerSituation} | ${r.statuses.join(', ')} |`),
+  ...outcomes.filter((o) => o.status !== 'done').map((o) => `| ${o.model} | ${o.status}: ${'reason' in o ? o.reason : ''} ||||||||||`),
   '',
   `Chosen: ${chosen?.model ?? 'none'} (JSON valid ≥ 95 %, highest mean of pair F1 and country Jaccard, within 0.03 of the top the cheaper).`,
   '',
   `Trial spend (ledger): $${parent.spentUsd.toFixed(6)} of $${TRIAL_TOTAL_USD}. Key usage before ${keyBefore.usage}, after ${keyAfter.usage} (read a minute after the last call).`,
 ]
-writeFileSync(join(dir, 'report.md'), `${lines.join('\n')}\n`)
+writeFileSync(join(outDir, 'report.md'), `${lines.join('\n')}\n`)
 console.log(lines.join('\n'))

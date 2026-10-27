@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { SpendLedger } from './spend'
-import { crossStoryAttach, jaccard, median, pairAgreement, runCandidates } from './trial-score'
+import { httpUrl } from './fetch/url'
+import { crossStoryAttach, jaccard, maxPerGroup, median, pairAgreement, runCandidates, trialOutcomes } from './trial-score'
 
 describe('trial scores', () => {
   // Labels: a,b,c one story; d,e another. Model: a,b together; c,d together; e alone.
@@ -74,5 +75,19 @@ describe('trial scores', () => {
       return 'never'
     })
     expect(outcomes.map((o) => o.status)).toEqual(['stopped', 'not_started'])
+  })
+
+  it('replays saved items as one outcome per outlet whose url is that outlet\'s feed url', () => {
+    const at = new Date('2026-10-27T00:00:00Z')
+    const item = (outletId: string, n: number) => ({ outletId, url: `https://${outletId}.test/${n}`, headline: 'h', blurb: '', publishedAt: at, language: 'en' })
+    const out = trialOutcomes([item('bbc', 1), item('dw', 1), item('bbc', 2)], at)
+    expect(out.map((o) => [o.outletId, o.items.length, o.httpStatus])).toEqual([['bbc', 2, null], ['dw', 1, null]])
+    for (const o of out) expect(httpUrl(o.url), o.url).toBe(o.url)
+    expect(() => trialOutcomes([item('nowhere', 1)], at)).toThrow('not on the list')
+  })
+
+  it('max per group counts the largest situation and ignores unplaced items', () => {
+    expect(maxPerGroup(['S1', 'S2', 'S1', null, null, null])).toBe(2)
+    expect(maxPerGroup([null])).toBe(0)
   })
 })

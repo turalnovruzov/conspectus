@@ -1,4 +1,7 @@
+import { OUTLETS } from './outlets.ts'
 import { SpendCeilingError, type SpendLedger } from './spend.ts'
+import type { FetchOutcome } from './stages/ingest.ts'
+import type { RawItem } from './types.ts'
 
 /**
  * Measures for the model trial. Every one compares a model's output with labels the build wrote
@@ -120,4 +123,25 @@ export async function runCandidates<T>(
     }
   }
   return out
+}
+
+/**
+ * Saved items replayed as one fetch outcome per outlet. The URL is the outlet's feed, where the items
+ * came from; nothing is fetched now, so there is no HTTP status.
+ */
+export function trialOutcomes(items: RawItem[], at: Date): FetchOutcome[] {
+  const byOutlet = new Map<string, RawItem[]>()
+  for (const i of items) byOutlet.set(i.outletId, [...(byOutlet.get(i.outletId) ?? []), i])
+  return [...byOutlet].map(([outletId, list]) => {
+    const outlet = OUTLETS.find((o) => o.id === outletId)
+    if (!outlet) throw new Error(`trial item from an outlet not on the list: ${outletId}`)
+    return { outletId, url: outlet.url, ok: true, httpStatus: null, error: null, ms: 0, startedAt: at, items: list }
+  })
+}
+
+/** The most items any one situation holds. */
+export function maxPerGroup(groups: Iterable<string | null>): number {
+  const counts = new Map<string, number>()
+  for (const g of groups) if (g !== null) counts.set(g, (counts.get(g) ?? 0) + 1)
+  return Math.max(0, ...counts.values())
 }
