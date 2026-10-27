@@ -43,6 +43,7 @@ Chat models, each over the same 120 items in two runs (date order, so attaching 
 
 Notes on the measures:
 
+- In practice JSON validity ≥ 95 % was the discriminator: only Mistral passed it, and the pair scores did not separate models run to run (a re-run of Mistral on the same 120 items moved pair F1 from 0.73 to 0.47, cross-story attach from 30 of 55 to 39 of 56).
 - "Cross-story attach" counts items placed into a situation another item opened whose opening item the labels put in a different story or call not relevant: it describes over-attachment. For the chosen model it is 30 of 55.
 - The four candidates under 95 % JSON valid all list reasoning among their OpenRouter parameters; Mistral, the one that does not, is the one at 100 %. The reader sizes `max_tokens` for the answer alone. The error texts were not kept, so the cause is unverified; the pair scores of 0 come from failed judge batches.
 - The embedding comparison embedded headline + blurb; the pipeline also adds the read step's one-line event.
