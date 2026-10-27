@@ -136,7 +136,7 @@ A web app: `npm run dev`, with the database from `DATABASE_URL` in `~/.config/co
 
 Looked at in a browser, driven by a browser tool.
 
-Tried on mock data the auditor makes until a news source is chosen.
+Tried on made-up page data: `node scripts/test-db.ts prepare --seed`, then `DATABASE_URL=postgres://conspectus:conspectus@127.0.0.1:5518/conspectus_test npm run dev`; the real page reads `DATABASE_URL` from `~/.config/conspectus/.env`.
 
 The news reader writes to the database at `DATABASE_URL` and pays OpenRouter with `OPENROUTER_API_KEY` (both in `~/.config/conspectus/.env`): `npm run reader:run` (one pass: fetch, read, cluster, save; `--ceiling` defaults to $0.75, `--max-items N` limits the items read), `npm run reader:backfill -- --days N` (earlier days, oldest first; `--ceiling` defaults to $3 in total; `--plan` prints items per day and an estimate without any model call), `npm run reader -- report` (the last run's report), `npm run reader -- fetch-only --out <file>` (fetch only, no database, no model). No run may be given more than $3; every run also stops $0.50 short of the key's weekly limit. Never point it at port 5516.
 
