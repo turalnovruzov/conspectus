@@ -15,7 +15,8 @@ What is in use in this repo, and why each piece is here. This is the record the 
 | What | Why it's here | Decision record |
 |---|---|---|
 | `react`, `react-dom` | UI | [ADR 0001](./adr/0001-frontend-stack-react-vite-typescript-d3-geo.md) |
-| `vite`, `@vitejs/plugin-react` | Dev server and build | [ADR 0001](./adr/0001-frontend-stack-react-vite-typescript-d3-geo.md) |
+| `next` | The app: frontend and backend together, dev server and build | [ADR 0003](./adr/0003-app-on-nextjs.md) |
+| `vite` | Test-only: Vitest's peer and the `?raw` types | [ADR 0003](./adr/0003-app-on-nextjs.md) |
 | `typescript` | Types | [ADR 0001](./adr/0001-frontend-stack-react-vite-typescript-d3-geo.md) |
 | `d3-geo` | Map projection and paths | [ADR 0001](./adr/0001-frontend-stack-react-vite-typescript-d3-geo.md) |
 | `topojson-client` | Topology to GeoJSON | [ADR 0001](./adr/0001-frontend-stack-react-vite-typescript-d3-geo.md) |
@@ -25,3 +26,7 @@ What is in use in this repo, and why each piece is here. This is the record the 
 | `@playwright/test` | End-to-end tests | [ADR 0001](./adr/0001-frontend-stack-react-vite-typescript-d3-geo.md) |
 | Design tokens and components: plain CSS in `src/design/`, a copy of the cloud design system https://claude.ai/artifact/5VUQ4UqqEg7D154QpH14ib | Night side look without a library | [ADR 0002](./adr/0002-design-tokens-plain-css-self-hosted-fonts.md) |
 | Fonts Inter and JetBrains Mono: self-hosted font files (OFL) | No third-party font request | [ADR 0002](./adr/0002-design-tokens-plain-css-self-hosted-fonts.md) |
+| `drizzle-orm`, `drizzle-kit` | Schema, migrations and queries | [ADR 0004](./adr/0004-storage-postgres-pgvector-drizzle.md) |
+| `pg`, `@types/pg` | Postgres driver and its types | [ADR 0004](./adr/0004-storage-postgres-pgvector-drizzle.md) |
+| PostgreSQL 18 + pgvector (`pgvector/pgvector:pg18`) | Storage and embeddings | [ADR 0004](./adr/0004-storage-postgres-pgvector-drizzle.md) |
+| `@types/node` | Types for Node APIs used by the scripts and the env loader | [ADR 0004](./adr/0004-storage-postgres-pgvector-drizzle.md) |

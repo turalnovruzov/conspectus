@@ -23,8 +23,10 @@ When **not** to write one:
 
 | # | Title | Status |
 |---|---|---|
-| [0001](./0001-frontend-stack-react-vite-typescript-d3-geo.md) | Frontend stack: React, Vite, TypeScript, d3-geo | Accepted |
+| [0001](./0001-frontend-stack-react-vite-typescript-d3-geo.md) | Frontend stack: React, Vite, TypeScript, d3-geo | Accepted; the Vite part superseded by [0003](./0003-app-on-nextjs.md) |
 | [0002](./0002-design-tokens-plain-css-self-hosted-fonts.md) | Design tokens: plain CSS, self-hosted OFL fonts | Accepted |
+| [0003](./0003-app-on-nextjs.md) | App on Next.js | Accepted |
+| [0004](./0004-storage-postgres-pgvector-drizzle.md) | Storage: PostgreSQL + pgvector via Drizzle | Accepted |
 
 ---
 

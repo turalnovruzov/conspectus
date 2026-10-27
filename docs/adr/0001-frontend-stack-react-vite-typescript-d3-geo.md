@@ -1,6 +1,6 @@
 # 0001. Frontend Stack: React, Vite, TypeScript, d3-geo
 
-- **Status**: Accepted
+- **Status**: Accepted; the Vite part superseded by [0003](./0003-app-on-nextjs.md)
 - **Date**: 2026-10-26
 
 ## Context
