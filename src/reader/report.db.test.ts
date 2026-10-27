@@ -46,6 +46,12 @@ describe('buildReport', () => {
     expect(text).toMatch(/key usage, whole backfill\s+0\.25 \/ 0\.36/)
   })
 
+  it('says the key delta can include other spend and the ledger is the figure of record', async () => {
+    const [run] = await db.insert(runs).values({ kind: 'live', ceilingUsd: '1', keyBefore: { usage: 1 }, keyAfter: { usage: 1.2 } }).returning()
+    const text = formatReport({ ...run, status: 'ok' }, await buildReport(db, run.id, newNotes()))
+    expect(text).toMatch(/key usage before \/ after\s+1 \/ 1\.2\n\s+\(the key delta can include other spend on the same key at the same time; the spend this run above, from the per-call ledger, is the figure of record\)/)
+  })
+
   it('reduces hosts to their registrable domain', () => {
     expect(registrableDomain('www.reuters.com')).toBe('reuters.com')
     expect(registrableDomain('news.example.co.uk')).toBe('example.co.uk')

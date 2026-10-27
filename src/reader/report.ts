@@ -30,6 +30,8 @@ export interface RunReport {
   suggestedOutlets: { domain: string; count: number }[]
 }
 
+export const KEY_DELTA_NOTE = '(the key delta can include other spend on the same key at the same time; the spend this run above, from the per-call ledger, is the figure of record)'
+
 const ratio = (a: number, b: number) => (b === 0 ? 0 : Math.round((a / b) * 10_000) / 10_000)
 const usage = (k: unknown) => (typeof (k as KeyInfo | null)?.usage === 'number' ? (k as KeyInfo).usage! : null)
 
@@ -118,6 +120,7 @@ export function formatReport(run: { id: string; kind: string; simDay: string | n
   lines.push(`run ${run.id} · ${run.kind}${run.simDay ? ` · day ${run.simDay}` : ''} · ${run.status}`)
   row('spend this run (USD)', `${Number(run.spentUsd).toFixed(6)} of ceiling ${Number(run.ceilingUsd).toFixed(4)}`)
   row(run.kind === 'backfill' ? 'key usage, whole backfill' : 'key usage before / after', `${r.spend.keyBefore ?? '?'} / ${r.spend.keyAfter ?? '?'}`)
+  lines.push(`${''.padEnd(26)} ${KEY_DELTA_NOTE}`)
   row('situations opened', r.situationsOpened)
   row('situations ended', r.situationsEnded)
   row('merged this run', r.mergedThisRun)

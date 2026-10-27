@@ -7,6 +7,16 @@ describe('readKey', () => {
     expect(await readKey('sk-test', fetchFn)).toEqual({ usage: 1.25, limit: 10, limit_remaining: 8.75 })
   })
 
+  it('keeps only the spend figures, never the account identifiers', async () => {
+    const fetchFn = vi.fn(async () => Response.json({ data: {
+      label: 'sk-or-v1-abc...xyz', usage: 1.25, limit: 10, limit_remaining: 8.75, usage_weekly: 0.5, usage_daily: 0.1,
+      creator_user_id: 'user_made_up', workspace_id: 'ws_made_up', organization_id: 'org_made_up', is_free_tier: false,
+    } }))
+    const key = await readKey('sk-test', fetchFn)
+    expect(Object.keys(key).sort()).toEqual(['limit', 'limit_remaining', 'usage', 'usage_weekly'])
+    expect(JSON.stringify(key)).not.toMatch(/made_up|sk-or/)
+  })
+
   it('refuses the run when the read fails', async () => {
     await expect(readKey('sk-test', vi.fn(async () => new Response('no', { status: 401 })))).rejects.toThrow(RunRefusedError)
     await expect(

@@ -3,8 +3,15 @@ import { MAX_RUN_CEILING_USD, type Pricing } from './spend.ts'
 
 export const OPENROUTER_BASE = 'https://openrouter.ai/api/v1'
 
-/** What `/key` returns, minus `label` (which can echo part of the key). */
-export type KeyInfo = Record<string, unknown> & { usage?: number; limit?: number | null; limit_remaining?: number | null }
+/** The spend figures of `/key`, and nothing else: its other fields name the account (ids, label). */
+export interface KeyInfo {
+  usage?: number
+  limit?: number | null
+  limit_remaining?: number | null
+  usage_weekly?: number
+}
+
+const KEY_FIELDS = ['usage', 'limit', 'limit_remaining', 'usage_weekly'] as const
 
 export class RunRefusedError extends Error {
   constructor(message: string) {
@@ -31,8 +38,8 @@ export async function readKey(apiKey: string, fetchFn: FetchFn = fetch): Promise
   if (res.status !== 200) throw new RunRefusedError(`could not read the OpenRouter key: http ${res.status}`)
   const body = (await res.json().catch(() => null)) as { data?: Record<string, unknown> } | null
   if (!body?.data || typeof body.data !== 'object') throw new RunRefusedError('could not read the OpenRouter key: no data')
-  const { label: _label, ...rest } = body.data
-  return rest as KeyInfo
+  const data = body.data
+  return Object.fromEntries(KEY_FIELDS.filter((f) => f in data).map((f) => [f, data[f]])) as KeyInfo
 }
 
 /**
