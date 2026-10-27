@@ -56,11 +56,11 @@ describe('loadLiveView', () => {
     ])
   })
 
-  it('gives sources outlet name, owner type, region, date, headline and url, newest first', async () => {
+  it('gives sources outlet id, format, name, owner type, region, date, headline and url, newest first', async () => {
     const s = await situationWith(['bbc', 'rt'])
     expect((await view(s.id)).sources).toEqual([
-      { outletName: 'RT', ownerType: 'state-run', region: 'Russia', publishedAt: new Date('2026-10-21T00:00:00Z'), headline: 'h1', url: `https://x.test/${n}/1` },
-      { outletName: 'BBC World', ownerType: 'public', region: 'Global', publishedAt: new Date('2026-10-20T00:00:00Z'), headline: 'h0', url: `https://x.test/${n}/0` },
+      { outletId: 'rt', format: 'rss', outletName: 'RT', ownerType: 'state-run', region: 'Russia', publishedAt: new Date('2026-10-21T00:00:00Z'), headline: 'h1', url: `https://x.test/${n}/1` },
+      { outletId: 'bbc', format: 'rss', outletName: 'BBC World', ownerType: 'public', region: 'Global', publishedAt: new Date('2026-10-20T00:00:00Z'), headline: 'h0', url: `https://x.test/${n}/0` },
     ])
   })
 
