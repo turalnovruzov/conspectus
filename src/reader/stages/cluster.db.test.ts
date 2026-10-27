@@ -199,3 +199,31 @@ describe('cluster phases', () => {
     expect(versions.at(-1)!.causeItemId).toBe(item.id)
   })
 })
+
+describe('cluster handles', () => {
+  it('an S handle that is not among the item\'s own candidates makes the item unsure', async () => {
+    await openSituation()
+    const ctx = await newContext(db, now)
+    const item = await readItem(db, { headline: 'Unrelated story' })
+    ctx.llm.script('judge', (req: { user: string }) => {
+      expect(req.user).toMatch(/^I1 · .* · candidates: S1/m)
+      return { decisions: [decision('I1', { action: 'new_event', situation: 'S2', eventTitle: 'x' })] }
+    })
+    await cluster(ctx)
+    const [row] = await db.select().from(sourceItems).where(eq(sourceItems.id, item.id))
+    expect(row.state).toBe('unsure')
+  })
+
+  it('an I handle pointing at a later item makes the item unsure', async () => {
+    const ctx = await newContext(db, now)
+    const first = await readItem(db, { headline: 'First story', publishedAt: new Date('2026-10-26T07:00:00Z') })
+    await readItem(db, { headline: 'Second story', publishedAt: new Date('2026-10-26T08:00:00Z') })
+    ctx.llm.script('judge', { decisions: [
+      decision('I1', { action: 'same_as', sameAs: 'I2' }),
+      decision('I2', { action: 'new_situation', eventTitle: 'e', newSituation: { title: 'T', oneLine: 'o', scope: 'ongoing' } }),
+    ] })
+    await cluster(ctx)
+    const [row] = await db.select().from(sourceItems).where(eq(sourceItems.id, first.id))
+    expect(row.state).toBe('unsure')
+  })
+})

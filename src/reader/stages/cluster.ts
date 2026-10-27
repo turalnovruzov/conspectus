@@ -320,13 +320,18 @@ export async function cluster(ctx: StageContext, options: { maxItems?: number } 
     const situationByHandle = new Map([...situationHandles].map(([id, h]) => [h, id]))
     const eventByHandle = new Map([...eventHandles].map(([id, h]) => [h, id]))
     await ctx.db.transaction(async (tx) => {
+      // placedInBatch only ever holds earlier items, so an I handle can point back but never forward.
       const placedInBatch = new Map<string, Placed>()
-      const resolve = {
-        situation: (h: string | null) => (h ? (situationByHandle.get(h.trim()) ?? placedInBatch.get(h.trim())?.situationIds[0] ?? null) : null),
-        event: (h: string | null) => (h ? (eventByHandle.get(h.trim()) ?? placedInBatch.get(h.trim())?.eventId ?? null) : null),
-      }
       for (const [i, item] of batch.entries()) {
         const handle = `I${i + 1}`
+        // A handle shown only to another item in the batch is not this item's candidate: it resolves to nothing, so unsure.
+        const own = new Set(perItem[i])
+        const pick = (h: string | null) => h?.trim() ?? ''
+        const resolve = {
+          situation: (h: string | null) =>
+            own.has(pick(h)) ? (situationByHandle.get(pick(h)) ?? null) : (placedInBatch.get(pick(h))?.situationIds[0] ?? null),
+          event: (h: string | null) => (own.has(pick(h)) ? (eventByHandle.get(pick(h)) ?? null) : (placedInBatch.get(pick(h))?.eventId ?? null)),
+        }
         const decision = decisions.find((d) => d.item.trim() === handle)
         const result = await apply(tx, ctx, item, decision, resolve)
         placedInBatch.set(handle, result)
