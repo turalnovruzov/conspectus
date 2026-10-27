@@ -68,3 +68,9 @@ export const MAP_COUNTRY_NAMES: string = MAP_COUNTRIES.filter((c) => c.name !== 
   .map((c) => c.name)
   .sort()
   .join(', ')
+
+const nameByKey = new Map(MAP_COUNTRIES.map((c) => [c.key, c.name]))
+
+export function countryNameOf(key: string): string {
+  return nameByKey.get(key) ?? key
+}
