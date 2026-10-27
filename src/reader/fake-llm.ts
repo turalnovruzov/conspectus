@@ -28,10 +28,13 @@ export class FakeLlm implements Llm {
   private readonly fallbacks = new Map<ChatPurpose, Responder>()
   private readonly ledger: SpendLedger | null
   private readonly costPerCall: number
+  private readonly reservePerCall: number
 
-  constructor(options: { ledger?: SpendLedger; costPerCall?: number; chatModel?: string; embeddingModel?: string } = {}) {
+  /** `reservePerCall` defaults to the cost; set it lower to play a call that costs more than its estimate. */
+  constructor(options: { ledger?: SpendLedger; costPerCall?: number; reservePerCall?: number; chatModel?: string; embeddingModel?: string } = {}) {
     this.ledger = options.ledger ?? null
     this.costPerCall = options.costPerCall ?? 0
+    this.reservePerCall = options.reservePerCall ?? this.costPerCall
     this.chatModel = options.chatModel ?? 'fake/chat'
     this.embeddingModel = options.embeddingModel ?? 'fake/embed'
   }
@@ -52,7 +55,7 @@ export class FakeLlm implements Llm {
 
   private async charge(purpose: ChatPurpose | 'embed', model: string): Promise<void> {
     if (!this.ledger) return
-    const reservation = this.ledger.reserve(this.costPerCall)
+    const reservation = this.ledger.reserve(this.reservePerCall)
     await this.ledger.record(reservation, { purpose, model, ok: true, reportedCostUsd: this.costPerCall, promptTokens: 1, completionTokens: 1 })
   }
 
