@@ -34,7 +34,7 @@ describe('schema', () => {
       .values({ outletId: 'o1', url: 'https://example.test/1', headline: 'h', embedding: [0.1, 0.2, 0.3] })
       .returning()
     expect(item.embedding).toEqual([0.1, 0.2, 0.3])
-    const res = await pool.query("select embedding <=> '[0.1,0.2,0.3]' as d from source_items")
+    const res = await pool.query("select embedding <=> '[0.1,0.2,0.3]' as d from source_items where id = $1", [item.id])
     expect(Number(res.rows[0].d)).toBe(0)
   })
 
