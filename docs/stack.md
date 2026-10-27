@@ -30,3 +30,9 @@ What is in use in this repo, and why each piece is here. This is the record the 
 | `pg`, `@types/pg` | Postgres driver and its types | [ADR 0004](./adr/0004-storage-postgres-pgvector-drizzle.md) |
 | PostgreSQL 18 + pgvector (`pgvector/pgvector:pg18`) | Storage and embeddings | [ADR 0004](./adr/0004-storage-postgres-pgvector-drizzle.md) |
 | `@types/node` | Types for Node APIs used by the scripts and the env loader | [ADR 0004](./adr/0004-storage-postgres-pgvector-drizzle.md) |
+| `openai` | Client for OpenRouter, the reader's model provider (chat and embeddings) | [ADR 0005](./adr/0005-news-reader-openrouter-and-parsing.md) |
+| OpenRouter (`https://openrouter.ai/api/v1`) | Third-party service: the reader's language and embedding models, paid from the $10/week key | [ADR 0005](./adr/0005-news-reader-openrouter-and-parsing.md) |
+| `fast-xml-parser` | RSS, RDF and Atom feeds | [ADR 0005](./adr/0005-news-reader-openrouter-and-parsing.md) |
+| `@mozilla/readability` | Article text when a blurb is not enough | [ADR 0005](./adr/0005-news-reader-openrouter-and-parsing.md) |
+| `linkedom` | DOM for Readability, the HTML index pages and Wikipedia's Current events | [ADR 0005](./adr/0005-news-reader-openrouter-and-parsing.md) |
+| `zod` | Validates model answers; the JSON schema sent as the structured-output format | [ADR 0005](./adr/0005-news-reader-openrouter-and-parsing.md) |

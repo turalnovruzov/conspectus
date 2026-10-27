@@ -1,14 +1,15 @@
 import { afterAll, describe, expect, it } from 'vitest'
 import { createDb } from './client'
-import { categories, outlets, partOfLinks, situationVersions, situations, sourceItems } from './schema'
+import { categories, involvements, outlets, partOfLinks, situationVersions, situations, sourceItems } from './schema'
 import { testDatabaseUrl } from './throwaway'
 
 const { db, pool } = createDb(testDatabaseUrl())
 afterAll(() => pool.end())
 
 const TABLES = [
-  'categories', 'event_items', 'event_versions', 'events', 'involvements', 'outlets',
-  'part_of_links', 'situation_events', 'situation_versions', 'situations', 'source_items', 'themes',
+  'categories', 'event_items', 'event_versions', 'events', 'fetch_log', 'involvements', 'llm_calls',
+  'outlets', 'part_of_links', 'runs', 'situation_events', 'situation_versions', 'situations',
+  'source_items', 'themes',
 ]
 
 describe('schema', () => {
@@ -17,7 +18,7 @@ describe('schema', () => {
     expect(res.rowCount).toBe(1)
   })
 
-  it('holds exactly the twelve tables', async () => {
+  it('holds exactly the fifteen tables', async () => {
     const res = await pool.query(
       "select table_name from information_schema.tables where table_schema = 'public' order by 1",
     )
@@ -33,7 +34,7 @@ describe('schema', () => {
       .values({ outletId: 'o1', url: 'https://example.test/1', headline: 'h', embedding: [0.1, 0.2, 0.3] })
       .returning()
     expect(item.embedding).toEqual([0.1, 0.2, 0.3])
-    const res = await pool.query("select embedding <=> '[0.1,0.2,0.3]' as d from source_items")
+    const res = await pool.query("select embedding <=> '[0.1,0.2,0.3]' as d from source_items where id = $1", [item.id])
     expect(Number(res.rows[0].d)).toBe(0)
   })
 
@@ -59,5 +60,16 @@ describe('schema', () => {
       .values({ name: 'c', definition: 'd', parentId: parent.id })
       .returning()
     expect(child.parentId).toBe(parent.id)
+  })
+
+  it('defaults an involvement entry to pulled_in', async () => {
+    const [s] = await db.insert(situations).values({ title: 's3' }).returning()
+    const [row] = await db.insert(involvements).values({ situationId: s.id, countryKey: '398', role: 'party' }).returning()
+    expect(row.entry).toBe('pulled_in')
+  })
+
+  it('defaults a situation to ongoing, not major, empty one line', async () => {
+    const [s] = await db.insert(situations).values({ title: 's4' }).returning()
+    expect({ scope: s.scope, major: s.major, oneLine: s.oneLine }).toEqual({ scope: 'ongoing', major: false, oneLine: '' })
   })
 })

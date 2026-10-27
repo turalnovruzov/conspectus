@@ -1,0 +1,96 @@
+import { createHash } from 'node:crypto'
+import { type ChatPurpose, type ChatRequest, type Llm, LlmOutputError } from './llm.ts'
+import type { SpendLedger } from './spend.ts'
+
+export type Responder = unknown | ((req: ChatRequest<unknown>) => unknown)
+
+export const FAKE_DIM = 64
+
+/** Bag-of-words vector: texts sharing words land close together, so retrieval behaves plausibly in tests. */
+export function hashVector(text: string): number[] {
+  const v = new Array<number>(FAKE_DIM).fill(0)
+  for (const word of text.toLowerCase().match(/[\p{L}\p{N}]+/gu) ?? []) {
+    const h = createHash('sha1').update(word).digest()
+    v[h[0] % FAKE_DIM] += 1
+  }
+  const norm = Math.hypot(...v) || 1
+  return v.map((x) => x / norm)
+}
+
+/** A scripted Llm for tests: queued responses per purpose, then the purpose's fallback; never touches the network. */
+export class FakeLlm implements Llm {
+  readonly chatModel: string
+  readonly embeddingModel: string
+  readonly calls: { purpose: ChatPurpose; system: string; user: string }[] = []
+  readonly embedCalls: string[][] = []
+  readonly vectors = new Map<string, number[]>()
+  /** Thrown, one per call and in order, by the next embed calls. */
+  readonly embedErrors: Error[] = []
+  private readonly queues = new Map<ChatPurpose, Responder[]>()
+  private readonly fallbacks = new Map<ChatPurpose, Responder>()
+  private readonly ledger: SpendLedger | null
+  private readonly costPerCall: number
+  private readonly reservePerCall: number
+  private readonly delayMs: number
+  private inFlight = 0
+  /** The most calls that were between their reservation and their record at one time. */
+  maxInFlight = 0
+
+  /**
+   * `reservePerCall` defaults to the cost; set it lower to play a call that costs more than its estimate.
+   * `delayMs` holds each call open between reserving and recording, as a real request does, so calls overlap.
+   */
+  constructor(options: { ledger?: SpendLedger; costPerCall?: number; reservePerCall?: number; delayMs?: number; chatModel?: string; embeddingModel?: string } = {}) {
+    this.ledger = options.ledger ?? null
+    this.costPerCall = options.costPerCall ?? 0
+    this.reservePerCall = options.reservePerCall ?? this.costPerCall
+    this.delayMs = options.delayMs ?? 0
+    this.chatModel = options.chatModel ?? 'fake/chat'
+    this.embeddingModel = options.embeddingModel ?? 'fake/embed'
+  }
+
+  script(purpose: ChatPurpose, ...responses: Responder[]): this {
+    this.queues.set(purpose, [...(this.queues.get(purpose) ?? []), ...responses])
+    return this
+  }
+
+  fallback(purpose: ChatPurpose, responder: Responder): this {
+    this.fallbacks.set(purpose, responder)
+    return this
+  }
+
+  callsFor(purpose: ChatPurpose): { system: string; user: string }[] {
+    return this.calls.filter((c) => c.purpose === purpose)
+  }
+
+  private async charge(purpose: ChatPurpose | 'embed', model: string): Promise<void> {
+    const reservation = this.ledger?.reserve(this.reservePerCall)
+    this.inFlight++
+    this.maxInFlight = Math.max(this.maxInFlight, this.inFlight)
+    if (this.delayMs > 0) await new Promise((r) => setTimeout(r, this.delayMs))
+    this.inFlight--
+    if (!this.ledger || !reservation) return
+    await this.ledger.record(reservation, { purpose, model, ok: true, reportedCostUsd: this.costPerCall, promptTokens: 1, completionTokens: 1 })
+  }
+
+  async chatJson<T>(req: ChatRequest<T>): Promise<T> {
+    await this.charge(req.purpose, this.chatModel)
+    this.calls.push({ purpose: req.purpose, system: req.system, user: req.user })
+    const queue = this.queues.get(req.purpose) ?? []
+    const responder = queue.length > 0 ? queue.shift() : this.fallbacks.get(req.purpose)
+    if (responder === undefined) throw new Error(`FakeLlm: nothing scripted for ${req.purpose}`)
+    const value = typeof responder === 'function' ? (responder as (r: ChatRequest<unknown>) => unknown)(req as ChatRequest<unknown>) : responder
+    if (value instanceof Error) throw value
+    const parsed = req.schema.safeParse(value)
+    if (!parsed.success) throw new LlmOutputError(`${req.purpose}: scripted response does not match the schema: ${parsed.error.message}`)
+    return parsed.data
+  }
+
+  async embed(texts: string[]): Promise<number[][]> {
+    const failure = this.embedErrors.shift()
+    if (failure) throw failure
+    await this.charge('embed', this.embeddingModel)
+    this.embedCalls.push(texts)
+    return texts.map((t) => this.vectors.get(t) ?? hashVector(t))
+  }
+}

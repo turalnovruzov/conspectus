@@ -27,6 +27,7 @@ When **not** to write one:
 | [0002](./0002-design-tokens-plain-css-self-hosted-fonts.md) | Design tokens: plain CSS, self-hosted OFL fonts | Accepted |
 | [0003](./0003-app-on-nextjs.md) | App on Next.js | Accepted |
 | [0004](./0004-storage-postgres-pgvector-drizzle.md) | Storage: PostgreSQL + pgvector via Drizzle | Accepted |
+| [0005](./0005-news-reader-openrouter-and-parsing.md) | News reader: OpenRouter via the openai client; feed and article parsing | Accepted |
 
 ---
 

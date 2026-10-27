@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Example Atom</title>
+  <link href="https://atom.example-news.test/" rel="alternate"/>
+  <entry>
+    <title type="html">Strike &lt;em&gt;ends&lt;/em&gt; after a week</title>
+    <link rel="self" href="https://atom.example-news.test/api/1"/>
+    <link rel="alternate" href="https://atom.example-news.test/2026/strike-ends"/>
+    <summary type="html">&lt;p&gt;Workers return.&lt;/p&gt;</summary>
+    <published>2026-10-26T07:00:00Z</published>
+  </entry>
+</feed>

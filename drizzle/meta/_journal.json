@@ -15,6 +15,20 @@
       "when": 1793075029165,
       "tag": "0001_initial_schema",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793076742226,
+      "tag": "0002_reader",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1793100925610,
+      "tag": "0003_part_of",
+      "breakpoints": true
     }
   ]
 }

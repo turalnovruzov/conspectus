@@ -1,6 +1,7 @@
 import { defineConfig } from 'vitest/config'
 
 const css = { include: [/[?&]raw(?:&|$)/] }
+const setupFiles = ['src/reader/test-setup.ts']
 
 export default defineConfig({
   test: {
@@ -11,6 +12,7 @@ export default defineConfig({
           include: ['src/**/*.test.ts'],
           exclude: ['src/**/*.db.test.ts', 'node_modules/**'],
           environment: 'node',
+          setupFiles,
           css,
         },
       },
@@ -20,6 +22,7 @@ export default defineConfig({
           include: ['src/**/*.db.test.ts'],
           environment: 'node',
           fileParallelism: false,
+          setupFiles,
           css,
         },
       },
