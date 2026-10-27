@@ -10,6 +10,8 @@ export interface RunNotes {
   ended: Set<string>
   merged: Set<string>
   unmatchedCountries: Record<string, number>
+  /** Items dropped at ingest because their URL is not absolute http(s). */
+  rejectedUrls: number
   llmFailures: { stage: string; message: string }[]
   articleFetches: number
   stagesSkipped: string[]
@@ -18,7 +20,7 @@ export interface RunNotes {
 export function newNotes(): RunNotes {
   return {
     touched: new Set(), opened: new Set(), ended: new Set(), merged: new Set(),
-    unmatchedCountries: {}, llmFailures: [], articleFetches: 0, stagesSkipped: [],
+    unmatchedCountries: {}, rejectedUrls: 0, llmFailures: [], articleFetches: 0, stagesSkipped: [],
   }
 }
 

@@ -1,6 +1,7 @@
 import { XMLParser } from 'fast-xml-parser'
 import type { OutletRef, RawItem } from '../types.ts'
 import { htmlToText } from './text.ts'
+import { httpUrl } from './url.ts'
 
 const parser = new XMLParser({
   ignoreAttributes: false,
@@ -59,12 +60,8 @@ export function parseFeed(xml: string, outlet: OutletRef): RawItem[] {
     const headline = htmlToText(text(item.title))
     const link = linkOf(item)
     if (!headline || !link) continue
-    let url: string
-    try {
-      url = new URL(unwrapRedirect(link), outlet.url).toString()
-    } catch {
-      continue
-    }
+    const url = httpUrl(unwrapRedirect(link), outlet.url)
+    if (!url) continue
     out.push({
       outletId: outlet.id,
       url,

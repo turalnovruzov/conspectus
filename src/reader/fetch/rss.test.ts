@@ -58,4 +58,23 @@ describe('parseFeed', () => {
   it('returns no items for a document that is not a feed', () => {
     expect(parseFeed('<html><body>blocked</body></html>', outlet('https://x.test/', ['x.test']))).toEqual([])
   })
+  it('drops an item whose link is not http(s)', () => {
+    const xml = `<?xml version="1.0"?><rss version="2.0"><channel><title>x</title>
+<item><title>Script link</title><link>javascript:alert(1)</link></item>
+<item><title>Data link</title><link>data:text/html,hi</link></item>
+<item><title>Ftp link</title><link>ftp://files.example-news.test/a</link></item>
+<item><title>Good link</title><link>https://www.example-news.test/world/good-1</link></item>
+</channel></rss>`
+    const items = parseFeed(xml, outlet('https://feeds.example-news.test/world.xml', ['example-news.test']))
+    expect(items.map((i) => [i.headline, i.url])).toEqual([['Good link', 'https://www.example-news.test/world/good-1']])
+  })
+
+  it('drops an Atom entry whose href is javascript:', () => {
+    const xml = `<?xml version="1.0"?><feed xmlns="http://www.w3.org/2005/Atom"><title>x</title>
+<entry><title>Bad</title><link rel="alternate" href="javascript:alert(1)"/></entry>
+<entry><title>Good</title><link rel="alternate" href="https://www.example-news.test/a-2"/></entry>
+</feed>`
+    const items = parseFeed(xml, outlet('https://feeds.example-news.test/atom.xml', ['example-news.test']))
+    expect(items.map((i) => i.url)).toEqual(['https://www.example-news.test/a-2'])
+  })
 })

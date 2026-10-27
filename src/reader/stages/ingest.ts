@@ -2,6 +2,7 @@ import { eq, sql } from 'drizzle-orm'
 import { fetchLog, outlets, sourceItems } from '../../db/schema.ts'
 import type { StageContext } from '../context.ts'
 import type { RawItem } from '../types.ts'
+import { httpUrl } from '../fetch/url.ts'
 
 export interface FetchOutcome {
   outletId: string
@@ -25,11 +26,18 @@ export async function ingest(
   let inserted = 0
   for (const outcome of outcomes) {
     let itemsNew = 0
-    if (outcome.items.length > 0) {
+    const storable = outcome.items.flatMap((item) => {
+      if (!httpUrl(item.url)) {
+        ctx.notes.rejectedUrls++
+        return []
+      }
+      return [{ ...item, citedUrl: httpUrl(item.citedUrl) ? item.citedUrl! : null }]
+    })
+    if (storable.length > 0) {
       const rows = await ctx.db
         .insert(sourceItems)
         .values(
-          outcome.items.map((item) => {
+          storable.map((item) => {
             const old = cutoff !== null && item.publishedAt !== null && item.publishedAt < cutoff
             return {
               outletId: item.outletId,
@@ -39,7 +47,7 @@ export async function ingest(
               publishedAt: item.publishedAt,
               fetchedText: [item.headline, item.blurb].filter(Boolean).join('\n\n'),
               language: item.language,
-              citedUrl: item.citedUrl ?? null,
+              citedUrl: item.citedUrl,
               firstRunId: ctx.runId,
               state: old ? 'skipped' : 'new',
               skipReason: old ? 'older than window' : null,
@@ -49,7 +57,7 @@ export async function ingest(
         .onConflictDoNothing()
         .returning({ id: sourceItems.id })
       itemsNew = rows.length
-      const dated = outcome.items.map((i) => i.publishedAt).filter((d): d is Date => d !== null)
+      const dated = storable.map((i) => i.publishedAt).filter((d): d is Date => d !== null)
       if (dated.length > 0) {
         const oldest = new Date(Math.min(...dated.map((d) => d.getTime())))
         await ctx.db

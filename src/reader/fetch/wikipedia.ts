@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto'
 import { parseHTML } from 'linkedom'
 import type { RawItem } from '../types.ts'
 import { collapse } from './text.ts'
+import { httpUrl } from './url.ts'
 
 const MONTHS = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -54,7 +55,7 @@ function entryParts(li: El): { text: string; citedUrl: string | null } {
     }
     if (node.nodeType !== 1) return
     if (node.tagName === 'A' && node.classList?.contains('external')) {
-      citedUrl ??= node.getAttribute?.('href') ?? null
+      citedUrl ??= httpUrl(node.getAttribute?.('href'), 'https://en.wikipedia.org/')
       return
     }
     for (const child of node.childNodes) walk(child)

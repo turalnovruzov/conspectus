@@ -24,4 +24,10 @@ describe('parseIndex', () => {
   it('returns nothing for an outlet without an article pattern', () => {
     expect(parseIndex(fixture('kyodo-index.html'), outlet('bbc'))).toEqual([])
   })
+  it('ignores javascript: and data: anchors', () => {
+    const html = `<a href="javascript:void('/articles/-/1')">Bad one</a><a href="data:text/html,x">Bad two</a><a href="/articles/-/1003">Good</a>`
+    expect(parseIndex(html, outlet('kyodo'), 'https://english.kyodonews.net/').map((i) => i.url)).toEqual([
+      'https://english.kyodonews.net/articles/-/1003',
+    ])
+  })
 })

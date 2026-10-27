@@ -2,6 +2,7 @@ import { parseHTML } from 'linkedom'
 import { hostAllowed } from '../outlets.ts'
 import type { OutletRef, RawItem } from '../types.ts'
 import { collapse } from './text.ts'
+import { httpUrl } from './url.ts'
 
 // Confirmed against one live fetch of each index page on 2026-10-27.
 export const ARTICLE_PATHS: Record<string, RegExp> = {
@@ -15,12 +16,9 @@ export function parseIndex(html: string, outlet: OutletRef, baseUrl: string = ou
   const { document } = parseHTML(html)
   const headlines = new Map<string, string>()
   for (const a of document.querySelectorAll('a[href]')) {
-    let url: URL
-    try {
-      url = new URL(a.getAttribute('href') ?? '', baseUrl)
-    } catch {
-      continue
-    }
+    const href = httpUrl(a.getAttribute('href'), baseUrl)
+    if (!href) continue
+    const url = new URL(href)
     if (!hostAllowed(url.hostname, outlet.hosts) || !pattern.test(url.pathname)) continue
     url.hash = ''
     const key = url.toString()
