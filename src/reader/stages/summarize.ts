@@ -158,7 +158,7 @@ async function chooseCategory(
   if (picked) return resolveMerged(picked, byId)
   const name = choice.name?.trim().slice(0, 80) ?? ''
   const definition = choice.definition?.trim() ?? ''
-  if (choice.action !== 'new' || !name || !definition) return null
+  if (!name || !definition) return null
   const [existing] = await ctx.db
     .select({ id: categories.id })
     .from(categories)
